@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="VERESHWARAPU PRAVEEN KUMAR - B.Tech CSE Student Portfolio. Future CSE Engineer showcasing projects, skills, and achievements.">
+  <meta name="keywords" content="CSE, Computer Science, Portfolio, B.Tech, Python, Developer, India">
+  <meta name="author" content="VERESHWARAPU PRAVEEN KUMAR">
+  <meta property="og:title" content="Praveen Kumar | CSE Portfolio">
+  <meta property="og:description" content="B.Tech CSE student portfolio - Future CSE Engineer">
+  <meta property="og:type" content="website">
+  <title>Praveen Kumar | CSE PORTFOLIO </title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+    rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/animations.css">
+
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+</head>
+
+<body>
+
+  <!-- ======================== LOADING SCREEN ======================== -->
+  <div id="loading-screen">
+    <div class="loader-logo">PK</div>
+    <div class="loader-bar-container">
+      <div class="loader-bar"></div>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.8rem; letter-spacing: 3px; font-family: var(--font-code);">
+      LOADING...</p>
+  </div>
+
+
+  <!-- ======================== SCROLL PROGRESS ======================== -->
+  <div id="scroll-progress"></div>
+
+  <!-- ======================== NAVBAR ======================== -->
+  <nav id="navbar">
+    <a href="#hero" class="nav-logo">PK<span style="color:var(--text-secondary)"></span></a>
+
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#certificates">Certificates</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><a href="javascript:void(0)" class="view-toggle-link" aria-label="Toggle View Mode"><span>📱Mobile
+            View</span></a></li>
+    </ul>
+
+    <button class="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+
+
+  <!-- Mobile Nav -->
+  <div id="mobile-nav-menu">
+    <a href="#about">About</a>
+    <a href="#skills">Skills</a>
+    <a href="#projects">Projects</a>
+    <a href="#certificates">Certificates</a>
+    <a href="#resume">Resume</a>
+    <a href="#contact">Contact</a>
+    <a href="javascript:void(0)" class="view-toggle-link" aria-label="Toggle View Mode"><span>📱Mobile View</span></a>
+    <a href="admin/admin.html" style="color: var(--accent-1);">⚙ Admin</a>
+  </div>
+
+  <!-- ======================== HERO SECTION ======================== -->
+  <section id="hero">
+    <canvas id="canvas-bg"></canvas>
+    <div class="hero-content">
+      <p class="hero-greeting">👋 Hello World, I'm</p>
+      <h1 class="hero-name">
+        <span class="name-line1">VERESHWARAPU</span><br>
+        <span class="name-line2">PRAVEEN KUMAR</span>
+      </h1>
+      <div class="hero-typing-wrapper">
+        <span class="typing-prefix"></span>
+        <span id="typing-text"></span>
+        <span class="typing-cursor"></span>
+      </div>
+      <p class="hero-description">
+        Passionate about building intelligent systems and crafting elegant code.
+        On a mission to shape the future with <strong style="color:var(--accent-1)">Computer Science</strong> and
+        <strong style="color:var(--accent-2)">Engineering</strong>...
+        📍India
+      </p>
+      <div class="hero-buttons">
+        <a href="#projects" class="btn-primary ripple-btn"> View Projects</a>
+        <a href="resume/resume.pdf" download class="btn-secondary resume-download-link">📄 Download Resume</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== ABOUT SECTION ======================== -->
+  <section id="about">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">// who_am_i</span>
+        <h2 class="section-title">About Me</h2>
+        <div class="section-divider">
+          <div class="divider-line"></div>
+          <div class="divider-dot"></div>
+          <div class="divider-line right"></div>
+        </div>
+      </div>
+
+      <div class="about-grid">
+        <div class="about-image-wrapper reveal-left">
+          <div class="about-image-frame">
+            <img src="images/profile.jpg" alt="Vereshwarapu Praveen Kumar" class="about-avatar">
+            <div class="about-glow-ring"></div>
+          </div>
+          <div class="floating-badge badge-1">🎓 B.Tech CSE</div>
+          <div class="floating-badge badge-2">💻 CSE Developer</div>
+        </div>
+
+        <div class="about-content reveal-right">
+          <p class="about-bio">
+            Hi! I'm <span class="about-highlight">Vereshwarapu Praveen Kumar</span>, a passionate
+            <span class="about-highlight">B.Tech student specializing in Computer Science & Engineering</span>.
+            I'm dedicated to building intelligent systems that solve real-world problems and push the boundaries of
+            what's possible with technology.
+          </p>
+          <p class="about-bio">
+            My journey in Computer Science is fueled by curiosity and a desire to create impactful solutions.
+            I love working on projects that combine <span class="about-highlight">deep learning</span>,
+            <span class="about-highlight">data analysis</span>, and <span class="about-highlight">full-stack
+              development</span>
+            to bring ideas to life. 🚀
+          </p>
+
+          <div class="about-info-grid">
+            <div class="info-card">
+              <div class="info-card-label">Name</div>
+              <div class="info-card-value">Praveen Kumar</div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-label">Department</div>
+              <div class="info-card-value">CSE</div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-label">Location</div>
+              <div class="info-card-value">📍 India</div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-label">Status</div>
+              <div class="info-card-value" style="color:var(--accent-1)">🟢 Open to Opportunities</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="margin-top:4rem;">
+        <div class="stat-card reveal">
+          <div class="stat-number" data-target="10" data-suffix="+">0</div>
+          <div class="stat-label">Projects Built</div>
+        </div>
+        <div class="stat-card reveal">
+          <div class="stat-number" data-target="5" data-suffix="+">0</div>
+          <div class="stat-label">Certifications</div>
+        </div>
+        <div class="stat-card reveal">
+          <div class="stat-number" data-target="3" data-suffix="+">0</div>
+          <div class="stat-label">Hackathons</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== SKILLS SECTION ======================== -->
+  <section id="skills">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">// tech_stack</span>
+        <h2 class="section-title">Skills & Technologies</h2>
+        <div class="section-divider">
+          <div class="divider-line"></div>
+          <div class="divider-dot"></div>
+          <div class="divider-line right"></div>
+        </div>
+      </div>
+
+      <div class="skills-categories">
+        <!-- Programming Languages -->
+        <div class="reveal">
+          <h3 class="skill-category-title">Programming Languages</h3>
+          <div class="skills-grid">
+            <div class="skill-card">
+              <span class="skill-icon">🐍</span>
+              <div class="skill-name">Python</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="90"></div>
+              </div>
+            </div>
+            <div class="skill-card">
+              <span class="skill-icon">☕</span>
+              <div class="skill-name">Java</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="75"></div>
+              </div>
+            </div>
+            <div class="skill-card">
+              <span class="skill-icon">🌐</span>
+              <div class="skill-name">JavaScript</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="70"></div>
+              </div>
+            </div>
+            <div class="skill-card">
+              <span class="skill-icon">⚡</span>
+              <div class="skill-name">C Language</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="65"></div>
+              </div>
+            </div>
+            <div class="skill-card">
+              <span class="skill-icon">🔤</span>
+              <div class="skill-name">SQL</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="70"></div>
+              </div>
+            </div>
+            <div class="skill-card">
+              <span class="skill-icon">🌿</span>
+              <div class="skill-name">HTML/CSS</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="80"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- Tools & Platforms -->
+        <div class="reveal">
+          <h3 class="skill-category-title">Tools & Platforms</h3>
+          <div class="skills-grid">
+            <div class="skill-card">
+              <span class="skill-icon">🐙</span>
+              <div class="skill-name">Git & GitHub</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="85"></div>
+              </div>
+            </div>
+            <div class="skill-card">
+              <span class="skill-icon">💻</span>
+              <div class="skill-name">VS Code</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="90"></div>
+              </div>
+            </div>
+            <div class="skill-card">
+              <span class="skill-icon">📓</span>
+              <div class="skill-name">Jupyter Notebook</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="88"></div>
+              </div>
+            </div>
+            <div class="skill-card">
+              <span class="skill-icon">☁️</span>
+              <div class="skill-name">Google Colab</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="85"></div>
+              </div>
+            </div>
+            <div class="skill-card">
+              <span class="skill-icon">🐧</span>
+              <div class="skill-name">Linux</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="65"></div>
+              </div>
+            </div>
+            <div class="skill-card">
+              <span class="skill-icon">🐳</span>
+              <div class="skill-name">Docker</div>
+              <div class="skill-level-bar">
+                <div class="skill-level-fill" data-level="55"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== PROJECTS SECTION ======================== -->
+  <section id="projects">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">// my_work</span>
+        <h2 class="section-title">Featured Projects</h2>
+        <div class="section-divider">
+          <div class="divider-line"></div>
+          <div class="divider-dot"></div>
+          <div class="divider-line right"></div>
+        </div>
+      </div>
+
+      <div class="projects-grid"></div>
+    </div>
+  </section>
+
+  <!-- ======================== CERTIFICATES SECTION ======================== -->
+  <section id="certificates">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">// achievements</span>
+        <h2 class="section-title">Certificates</h2>
+        <div class="section-divider">
+          <div class="divider-line"></div>
+          <div class="divider-dot"></div>
+          <div class="divider-line right"></div>
+        </div>
+      </div>
+
+
+      <div class="certs-grid" id="certs-grid">
+        <!-- Cert 1 -->
+        <div class="cert-card cert-reveal stagger-1" data-category="Core">
+          <div class="cert-preview" style="background:linear-gradient(135deg,#1a1a3e,#4c1d95);">
+            <span style="font-size:4rem;">⚙️</span>
+            <div class="cert-overlay">
+              <span class="cert-view-btn"
+                data-lightbox="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80">👁 View
+                Certificate</span>
+            </div>
+          </div>
+          <div class="cert-info">
+            <div class="cert-title">Machine Learning Specialization</div>
+            <div class="cert-issuer">Coursera / Andrew Ng</div>
+            <div class="cert-date">2024</div>
+          </div>
+        </div>
+
+        <!-- Cert 2 -->
+        <div class="cert-card cert-reveal stagger-2" data-category="Core">
+          <div class="cert-preview" style="background:linear-gradient(135deg,#0f4c75,#1b262c);">
+            <span style="font-size:4rem;">⚡</span>
+            <div class="cert-overlay">
+              <span class="cert-view-btn"
+                data-lightbox="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800&q=80">👁 View
+                Certificate</span>
+            </div>
+          </div>
+          <div class="cert-info">
+            <div class="cert-title">Deep Learning with TensorFlow</div>
+            <div class="cert-issuer">Google / Coursera</div>
+            <div class="cert-date">2024</div>
+          </div>
+        </div>
+
+        <!-- Cert 3 -->
+        <div class="cert-card cert-reveal stagger-3" data-category="Programming">
+          <div class="cert-preview" style="background:linear-gradient(135deg,#1a3a1a,#2d6a2d);">
+            <span style="font-size:4rem;">💻</span>
+            <div class="cert-overlay">
+              <span class="cert-view-btn"
+                data-lightbox="https://images.unsplash.com/photo-1526379095098-d400fd0bfce8?w=800&q=80">👁 View
+                Certificate</span>
+            </div>
+          </div>
+          <div class="cert-info">
+            <div class="cert-title">Python for Data Science</div>
+            <div class="cert-issuer">IBM / edX</div>
+            <div class="cert-date">2023</div>
+          </div>
+        </div>
+
+        <!-- Cert 4 -->
+        <div class="cert-card cert-reveal stagger-4" data-category="Cloud">
+          <div class="cert-preview" style="background:linear-gradient(135deg,#1e1a3e,#2d1b69);">
+            <span style="font-size:4rem;">🌐</span>
+            <div class="cert-overlay">
+              <span class="cert-view-btn"
+                data-lightbox="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80">👁 View
+                Certificate</span>
+            </div>
+          </div>
+          <div class="cert-info">
+            <div class="cert-title">Google Cloud Fundamentals</div>
+            <div class="cert-issuer">Google Cloud</div>
+            <div class="cert-date">2024</div>
+          </div>
+        </div>
+
+        <!-- Cert 5 -->
+        <div class="cert-card cert-reveal stagger-5" data-category="Data Science">
+          <div class="cert-preview" style="background:linear-gradient(135deg,#3a1a1a,#6a2d2d);">
+            <span style="font-size:4rem;">📊</span>
+            <div class="cert-overlay">
+              <span class="cert-view-btn"
+                data-lightbox="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80">👁 View
+                Certificate</span>
+            </div>
+          </div>
+          <div class="cert-info">
+            <div class="cert-title">Data Science Professional</div>
+            <div class="cert-issuer">IBM / Coursera</div>
+            <div class="cert-date">2023</div>
+          </div>
+        </div>
+
+      <!-- Cert 6 -->
+      <div class="cert-card reveal" data-category="Core">
+        <div class="cert-preview" style="background:linear-gradient(135deg,#1a3a3a,#0e7490);">
+          <span style="font-size:4rem;">🛡️</span>
+          <div class="cert-overlay">
+            <span class="cert-view-btn"
+              data-lightbox="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80">👁 View
+              Certificate</span>
+          </div>
+        </div>
+        <div class="cert-info">
+          <div class="cert-title">AI for Everyone</div>
+          <div class="cert-issuer">Coursera / Andrew Ng</div>
+          <div class="cert-date">2023</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload prompt -->
+    <div style="text-align:center;margin-top:2rem;">
+      <a href="admin/admin.html" class="btn-secondary" style="display:inline-flex;align-items:center;gap:0.5rem;">
+        ⚙ Manage Certificates in Admin
+      </a>
+    </div>
+    </div>
+  </section>
+
+
+
+  <!-- ======================== RESUME SECTION ======================== -->
+  <section id="resume">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">// my_cv</span>
+        <h2 class="section-title">Resume</h2>
+        <div class="section-divider">
+          <div class="divider-line"></div>
+          <div class="divider-dot"></div>
+          <div class="divider-line right"></div>
+        </div>
+      </div>
+
+      <div class="resume-container">
+        <div class="resume-preview-card reveal">
+          <div class="resume-icon">📄</div>
+          <h3 class="resume-title">Vereshwarapu Praveen Kumar</h3>
+          <p class="resume-subtitle">B.Tech Student | Computer Science Engineer | India</p>
+          <div style="display:flex;justify-content:center;gap:2rem;margin-bottom:2rem;flex-wrap:wrap;">
+            <div style="text-align:center;">
+              <div style="font-family:var(--font-heading);font-size:1.5rem;color:var(--accent-1);">CGPA</div>
+              <div style="color:var(--text-secondary);font-size:0.85rem;">Academic Excellence</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-family:var(--font-heading);font-size:1.5rem;color:var(--accent-1);">CSE</div>
+              <div style="color:var(--text-secondary);font-size:0.85rem;">Specialization</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-family:var(--font-heading);font-size:1.5rem;color:var(--accent-1);">10+</div>
+              <div style="color:var(--text-secondary);font-size:0.85rem;">Projects</div>
+            </div>
+          </div>
+          <a href="resume/resume.pdf" download class="resume-download-btn resume-download-link">
+            ⬇ Download Resume (PDF)
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== CONTACT SECTION ======================== -->
+  <section id="contact">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">// get_in_touch</span>
+        <h2 class="section-title">Contact Me</h2>
+        <div class="section-divider">
+          <div class="divider-line"></div>
+          <div class="divider-dot"></div>
+          <div class="divider-line right"></div>
+        </div>
+      </div>
+
+      <div class="contact-grid">
+        <div class="contact-info-section reveal-left">
+          <h3 class="contact-info-title">Let's Build Something Amazing Together</h3>
+          <p class="contact-info-desc">
+            I'm always open to exciting opportunities, collaborations, and conversations about Computer Science.
+            Whether you have a project idea, internship opportunity, or just want to say hi — my inbox is always open!
+            💬
+          </p>
+
+          <div class="contact-info-items">
+            <div class="contact-info-item">
+              <div class="contact-info-icon">📧</div>
+              <div>
+                <div class="contact-info-label">Email</div>
+                <div class="contact-info-value">v.praveen.6070@gmail.com</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-info-icon">📱</div>
+              <div>
+                <div class="contact-info-label">Phone</div>
+                <div class="contact-info-value">+91 9133606070</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-info-icon">📍</div>
+              <div>
+                <div class="contact-info-label">Location</div>
+                <div class="contact-info-value">India</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="contact-social-links">
+            <a href="https://github.com/vpraveen6070-cpu" target="_blank" class="social-icon-link" title="GitHub">
+              🐙
+            </a>
+            <a href="https://www.linkedin.com/in/vereshwarapu-praveen-kumar-2640b4401" target="_blank" class="social-icon-link" title="LinkedIn">
+              💼
+            </a>
+            <a href="mailto:v.praveen.6070@gmail.com" target="_blank" class="social-icon-link" title="Email">
+              📧
+            </a>
+          </div>
+        </div>
+
+        <div class="contact-form-section reveal-right">
+          <form class="contact-form" id="contact-form" novalidate>
+            <div class="form-group">
+              <label class="form-label" for="contact-name">Your Name</label>
+              <input type="text" id="contact-name" name="name" class="form-control" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="contact-email">Email Address</label>
+              <input type="email" id="contact-email" name="email" class="form-control" placeholder="john@example.com"
+                required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="contact-subject">Subject</label>
+              <input type="text" id="contact-subject" name="subject" class="form-control"
+                placeholder="Project Collaboration">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="contact-message">Message</label>
+              <textarea id="contact-message" name="message" class="form-control"
+                placeholder="Tell me about your project or idea..." required></textarea>
+            </div>
+            <button type="submit" class="form-submit-btn">
+              🚀 Send Message
+            </button>
+            <div class="form-success-msg">✅ Your message has been sent successfully!</div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== FOOTER ======================== -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-logo">PK</div>
+      <p class="footer-text">
+        Designed & Built with <span>❤️</span> by
+        <span>VERESHWARAPU PRAVEEN KUMAR</span>
+      </p>
+      <p class="footer-text" style="font-size:0.8rem;margin-top:0.3rem;">
+        B.Tech CSE Student | Future CSE Engineer | 🇮🇳 India
+      </p>
+      <div class="footer-social">
+        <a href="https://github.com/vpraveen6070-cpu" target="_blank" class="social-icon-link">🐙</a>
+        <a href="https://www.linkedin.com/in/vereshwarapu-praveen-kumar-2640b4401" target="_blank" class="social-icon-link" title="LinkedIn">💼</a>
+        <a href="mailto:v.praveen.6070@gmail.com" target="_blank" class="social-icon-link">📧</a>
+      </div>
+      <p class="footer-text" style="font-size:0.75rem;margin-top:1rem;opacity:0.6;">
+        © 2024 Praveen Kumar. All rights reserved. |
+        <a href="admin/admin.html" style="color:var(--accent-1);opacity:0.6;">PRAVEEN KUMAR</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- ======================== LIGHTBOX ======================== -->
+  <div id="lightbox">
+    <span id="lightbox-close">✕</span>
+    <img id="lightbox-content" src="" alt="Preview">
+  </div>
+
+  <!-- ======================== BACK TO TOP ======================== -->
+  <button id="back-to-top" aria-label="Back to top">↑</button>
+
+  <!-- ======================== SCRIPTS ======================== -->
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  
+  <script src="js/upload.js"></script>
+  <script src="js/theme-switcher.js"></script>
+  <script src="js/animations.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>
