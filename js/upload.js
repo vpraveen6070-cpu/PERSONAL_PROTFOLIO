@@ -194,7 +194,7 @@ const Storage = {
 // =============================================
 // IMAGE COMPRESSION & FILE READER UTILITIES
 // =============================================
-function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
+function compressImage(file, maxWidth = 1800, maxHeight = 1800, quality = 0.92) {
   return new Promise((resolve) => {
     if (!file.type || !file.type.startsWith('image/')) {
       const reader = new FileReader();
