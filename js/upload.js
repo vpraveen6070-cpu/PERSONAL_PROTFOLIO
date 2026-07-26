@@ -320,12 +320,32 @@ async function addVideoEmbed(title, embedUrl, description) {
 const DEFAULT_CERTS = [];
 
 async function getCerts() {
-  const stored = (await Storage.get('portfolio-certs')) || [];
-  return stored.filter(c => {
+  let local = [];
+  try {
+    local = JSON.parse(localStorage.getItem('portfolio-certs')) || [];
+  } catch (e) { local = []; }
+  
+  const cleanFilter = c => {
     if (!c || !c.id) return false;
     const text = JSON.stringify(c).toLowerCase();
     return !text.includes('automated test') && !text.includes('cloud sync') && !text.includes('test project');
-  });
+  };
+
+  const cleanLocal = local.filter(cleanFilter);
+  if (cleanLocal.length > 0) {
+    Storage.get('portfolio-certs').then(stored => {
+      if (stored && Array.isArray(stored)) {
+        const cleaned = stored.filter(cleanFilter);
+        if (cleaned.length !== cleanLocal.length) {
+          renderUploadedCerts();
+        }
+      }
+    }).catch(() => {});
+    return cleanLocal;
+  }
+
+  const stored = (await Storage.get('portfolio-certs')) || [];
+  return stored.filter(cleanFilter);
 }
 
 // =============================================
@@ -545,12 +565,32 @@ function initDragDrop(dropZoneId, onFileDrop) {
 const DEFAULT_PROJECTS = [];
 
 async function getProjects() {
-  const stored = (await Storage.get('portfolio-projects')) || [];
-  return stored.filter(p => {
+  let local = [];
+  try {
+    local = JSON.parse(localStorage.getItem('portfolio-projects')) || [];
+  } catch (e) { local = []; }
+
+  const cleanFilter = p => {
     if (!p || !p.id) return false;
     const text = JSON.stringify(p).toLowerCase();
     return !text.includes('automated test') && !text.includes('cloud sync') && !text.includes('test project');
-  });
+  };
+
+  const cleanLocal = local.filter(cleanFilter);
+  if (cleanLocal.length > 0) {
+    Storage.get('portfolio-projects').then(stored => {
+      if (stored && Array.isArray(stored)) {
+        const cleaned = stored.filter(cleanFilter);
+        if (cleaned.length !== cleanLocal.length) {
+          renderProjects();
+        }
+      }
+    }).catch(() => {});
+    return cleanLocal;
+  }
+
+  const stored = (await Storage.get('portfolio-projects')) || [];
+  return stored.filter(cleanFilter);
 }
 
 async function renderProjects() {
@@ -615,11 +655,28 @@ function initFirestoreListeners() {
     try {
       db.collection(key).onSnapshot(snapshot => {
         const firestoreDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        localStorage.setItem(key, JSON.stringify(firestoreDocs));
-        if (key === 'portfolio-certs') renderUploadedCerts();
-        if (key === 'portfolio-projects') renderProjects();
-        if (key === 'portfolio-videos') renderUploadedVideos();
-        if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
+        if (firestoreDocs.length > 0) {
+          localStorage.setItem(key, JSON.stringify(firestoreDocs));
+          if (key === 'portfolio-certs') renderUploadedCerts();
+          if (key === 'portfolio-projects') renderProjects();
+          if (key === 'portfolio-videos') renderUploadedVideos();
+          if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
+        } else {
+          const local = JSON.parse(localStorage.getItem(key)) || [];
+          if (local.length > 0) {
+            for (const item of local) {
+              if (item && item.id) {
+                db.collection(key).doc(String(item.id)).set(item).catch(console.warn);
+              }
+            }
+          } else {
+            localStorage.setItem(key, JSON.stringify([]));
+            if (key === 'portfolio-certs') renderUploadedCerts();
+            if (key === 'portfolio-projects') renderProjects();
+            if (key === 'portfolio-videos') renderUploadedVideos();
+            if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
+          }
+        }
       }, err => {
         console.warn(`Firestore onSnapshot warning for ${key}:`, err);
       });
@@ -699,14 +756,17 @@ async function syncAllToCloud() {
 // =============================================
 // INIT ON PAGE LOAD
 // =============================================
-document.addEventListener('DOMContentLoaded', async () => {
-  await removeTestItems();
+document.addEventListener('DOMContentLoaded', () => {
   renderUploadedCerts();
   renderUploadedVideos();
   renderUploadedResume();
   renderProjects();
-  initFirestoreListeners();
-  syncAllToCloud().catch(console.warn);
+
+  setTimeout(async () => {
+    await removeTestItems();
+    initFirestoreListeners();
+    syncAllToCloud().catch(console.warn);
+  }, 100);
 });
 
 // Export for admin
