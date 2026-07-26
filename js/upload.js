@@ -303,10 +303,15 @@ async function getCerts() {
     if (!localStorage.getItem('portfolio-certs-initialized')) {
       localStorage.setItem('portfolio-certs', JSON.stringify(DEFAULT_CERTS));
       localStorage.setItem('portfolio-certs-initialized', 'true');
+      if (db) {
+        for (const cert of DEFAULT_CERTS) {
+          db.collection('portfolio-certs').doc(String(cert.id)).set(cert).catch(console.warn);
+        }
+      }
       return DEFAULT_CERTS;
     }
   }
-  return stored;
+  return stored || [];
 }
 
 // =============================================
@@ -526,10 +531,15 @@ async function getProjects() {
     if (!localStorage.getItem('portfolio-projects-initialized')) {
       localStorage.setItem('portfolio-projects', JSON.stringify(DEFAULT_PROJECTS));
       localStorage.setItem('portfolio-projects-initialized', 'true');
+      if (db) {
+        for (const proj of DEFAULT_PROJECTS) {
+          db.collection('portfolio-projects').doc(String(proj.id)).set(proj).catch(console.warn);
+        }
+      }
       return DEFAULT_PROJECTS;
     }
   }
-  return stored;
+  return stored || [];
 }
 
 async function renderProjects() {
@@ -576,6 +586,41 @@ async function renderProjects() {
 }
 
 // =============================================
+// REALTIME FIRESTORE LISTENERS FOR CROSS-DEVICE SYNC
+// =============================================
+function initFirestoreListeners() {
+  if (!db) return;
+  const collections = ['portfolio-certs', 'portfolio-projects', 'portfolio-videos', 'portfolio-messages'];
+  collections.forEach(key => {
+    try {
+      db.collection(key).onSnapshot(snapshot => {
+        const firestoreDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (firestoreDocs.length > 0) {
+          localStorage.setItem(key, JSON.stringify(firestoreDocs));
+          if (key === 'portfolio-certs') renderUploadedCerts();
+          if (key === 'portfolio-projects') renderProjects();
+          if (key === 'portfolio-videos') renderUploadedVideos();
+        }
+      }, err => {
+        console.warn(`Firestore onSnapshot warning for ${key}:`, err);
+      });
+    } catch (e) {
+      console.warn(`Firestore listener setup error for ${key}:`, e);
+    }
+  });
+
+  try {
+    db.collection('portfolio-resume').doc('current-resume').onSnapshot(doc => {
+      if (doc.exists) {
+        const resume = doc.data();
+        localStorage.setItem('portfolio-resume', JSON.stringify(resume));
+        renderUploadedResume();
+      }
+    });
+  } catch (e) {}
+}
+
+// =============================================
 // INIT ON PAGE LOAD
 // =============================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -583,6 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderUploadedVideos();
   renderUploadedResume();
   renderProjects();
+  initFirestoreListeners();
 });
 
 // Export for admin
@@ -591,5 +637,5 @@ window.PortfolioUpload = {
   renderUploadedCerts, renderUploadedVideos, renderUploadedResume,
   renderProjects, getProjects, DEFAULT_PROJECTS,
   getCerts, DEFAULT_CERTS,
-  Storage, openVideoModal,
+  Storage, openVideoModal, db
 };
