@@ -336,8 +336,22 @@ async function renderUploadedCerts() {
   const grid = document.getElementById('certs-grid');
   if (!grid) return;
 
+  const manageBtn = document.querySelector('#certificates .btn-secondary');
+  if (manageBtn && manageBtn.parentElement) {
+    manageBtn.parentElement.style.display = certs.length > 0 ? 'block' : 'none';
+  }
+
   if (!certs || certs.length === 0) {
-    grid.innerHTML = '<p style="color:var(--text-secondary);grid-column:1/-1;text-align:center;padding:2rem;">No certificates available.</p>';
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 2rem; background: var(--bg-card, rgba(15,15,15,0.85)); border: 1px dashed var(--border-color, rgba(212,175,55,0.3)); border-radius: 20px; backdrop-filter: blur(10px); max-width: 580px; margin: 0 auto;">
+        <div style="font-size: 3rem; margin-bottom: 0.8rem;">📜</div>
+        <h3 style="color: var(--text-primary, #ffffff); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">No Certificates Added Yet</h3>
+        <p style="color: var(--text-secondary, #a0a0a0); font-size: 0.9rem; line-height: 1.6; margin: 0 auto 1.5rem; max-width: 420px;">Upload your certificates in the Admin Panel to showcase your credentials here in real-time.</p>
+        <a href="admin/admin.html" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.6rem; font-size: 0.88rem; border-radius: 50px; font-weight: 600;">
+          ⚙ Go to Admin Panel
+        </a>
+      </div>
+    `;
     return;
   }
 
@@ -545,7 +559,16 @@ async function renderProjects() {
   if (!grid) return;
 
   if (!projects || projects.length === 0) {
-    grid.innerHTML = '<p style="color:var(--text-secondary);grid-column:1/-1;text-align:center;padding:2rem;">No projects available.</p>';
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 2rem; background: var(--bg-card, rgba(15,15,15,0.85)); border: 1px dashed var(--border-color, rgba(212,175,55,0.3)); border-radius: 20px; backdrop-filter: blur(10px); max-width: 580px; margin: 0 auto;">
+        <div style="font-size: 3rem; margin-bottom: 0.8rem;">💻</div>
+        <h3 style="color: var(--text-primary, #ffffff); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">No Projects Added Yet</h3>
+        <p style="color: var(--text-secondary, #a0a0a0); font-size: 0.9rem; line-height: 1.6; margin: 0 auto 1.5rem; max-width: 420px;">Add your featured projects in the Admin Panel to showcase them here.</p>
+        <a href="admin/admin.html" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.6rem; font-size: 0.88rem; border-radius: 50px; font-weight: 600;">
+          ⚙ Add Projects in Admin
+        </a>
+      </div>
+    `;
     return;
   }
 
