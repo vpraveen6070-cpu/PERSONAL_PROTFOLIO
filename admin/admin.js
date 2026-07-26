@@ -274,13 +274,30 @@ async function renderAdminMessages() {
 window.renderAdminMessages = renderAdminMessages;
 
 async function deleteMessage(id) {
-  if (confirm('Delete this message?')) {
-    if (!window.PortfolioUpload) return;
-    await window.PortfolioUpload.Storage.remove('portfolio-messages', id);
-    await renderAdminMessages();
-    await updateStats();
-    showAdminToast('Message deleted');
+  if (!confirm('Delete this message?')) return;
+
+  const stringId = String(id);
+
+  // Remove from localStorage immediately
+  try {
+    const arr = (JSON.parse(localStorage.getItem('portfolio-messages')) || []).filter(m => String(m.id) !== stringId);
+    localStorage.setItem('portfolio-messages', JSON.stringify(arr));
+  } catch (e) {}
+
+  // Remove from Firestore if available
+  if (window.PortfolioUpload) {
+    await window.PortfolioUpload.Storage.remove('portfolio-messages', stringId).catch(console.warn);
+  } else {
+    // Fallback: try db directly
+    try {
+      const db = window.firebase && firebase.apps.length ? firebase.firestore() : null;
+      if (db) await db.collection('portfolio-messages').doc(stringId).delete();
+    } catch (e) { console.warn('Firestore fallback delete error:', e); }
   }
+
+  await renderAdminMessages();
+  if (typeof updateStats === 'function') await updateStats();
+  showAdminToast('Message deleted ✓');
 }
 window.deleteMessage = deleteMessage;
 
