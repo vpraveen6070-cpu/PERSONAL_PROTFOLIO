@@ -428,17 +428,7 @@ async function renderUploadedCerts() {
           </div>
         </div>
         <div class="cert-info">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem;">
-            <span style="font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent-1);background:rgba(212,175,55,0.12);padding:0.18rem 0.6rem;border-radius:50px;border:1px solid rgba(212,175,55,0.25);">
-              ✔ VERIFIED
-            </span>
-            <span style="font-size:0.75rem;color:var(--text-secondary);font-family:var(--font-code);">${cert.category || 'Certificate'}</span>
-          </div>
           <div class="cert-title">${cert.name}</div>
-          <div class="cert-meta-row">
-            <div class="cert-issuer">🏢 ${issuerText}</div>
-            <div class="cert-date">🗓 ${certDate}</div>
-          </div>
         </div>
       </div>
     `;
