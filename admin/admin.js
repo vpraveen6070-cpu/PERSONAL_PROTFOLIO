@@ -147,18 +147,69 @@ async function renderAdminCerts() {
     }
 
     return `
-      <div class="admin-item-card" data-id="${cert.id}">
+      <div class="admin-item-card" data-id="${cert.id}" style="cursor:pointer;" onclick="window.previewCertModal('${cert.id}')" title="Click to view popup preview">
         <div class="admin-item-thumb-placeholder">
           ${thumbContent}
         </div>
         <div class="admin-item-info">
           <div class="admin-item-name">${cert.name}</div>
         </div>
-        <button class="admin-item-delete" onclick="window.deleteCert('${cert.id}')">✕ Delete</button>
+        <button class="admin-item-delete" onclick="event.stopPropagation(); window.deleteCert('${cert.id}')">✕ Delete</button>
       </div>
     `;
   }).join('');
 }
+
+async function previewCertModal(id) {
+  if (!window.PortfolioUpload) return;
+  const certs = window.PortfolioUpload.getCerts ? await window.PortfolioUpload.getCerts() : await window.PortfolioUpload.Storage.get('portfolio-certs');
+  const cert = certs.find(c => String(c.id) === String(id));
+  if (!cert) return;
+
+  const existing = document.getElementById('admin-cert-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'admin-cert-modal';
+  modal.style.cssText = `
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
+    z-index: 99999; display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem; backdrop-filter: blur(8px); animation: fadeIn 0.25s ease forwards;
+  `;
+
+  let mediaHtml = '';
+  if (cert.file && (cert.file.startsWith('data:image') || cert.file.startsWith('http'))) {
+    mediaHtml = `<img src="${cert.file}" style="max-width:100%; max-height:320px; object-fit:contain; border-radius:12px; border:1px solid rgba(255,255,255,0.1); margin-bottom:1rem;" alt="${cert.name}">`;
+  } else if (cert.icon) {
+    mediaHtml = `<div style="width:110px; height:110px; border-radius:20px; background:${cert.bg || 'linear-gradient(135deg,var(--accent-1),var(--accent-2))'}; display:flex; align-items:center; justify-content:center; font-size:3.5rem; margin:0 auto 1rem auto; box-shadow:0 10px 30px rgba(0,0,0,0.5);">${cert.icon}</div>`;
+  } else {
+    mediaHtml = `<div style="font-size:4rem; margin-bottom:1rem; text-align:center;">📄</div>`;
+  }
+
+  const openLinkBtn = cert.file ? `<a href="${cert.file}" target="_blank" class="btn-primary" style="padding:0.5rem 1rem; font-size:0.85rem; text-decoration:none;">👁 View Full File</a>` : '';
+
+  modal.innerHTML = `
+    <div style="background: var(--bg-card, #12131c); border: 1px solid var(--border-color, rgba(255,255,255,0.15)); border-radius: 20px; max-width: 480px; width: 100%; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.7); position: relative; text-align: center; color: var(--text-primary, #ffffff);">
+      <button id="close-admin-cert-modal" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer;">✕</button>
+      ${mediaHtml}
+      <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem;">${cert.name}</h3>
+      <p style="color: var(--accent-1); font-size: 0.9rem; margin-bottom: 0.2rem;">${cert.issuer || cert.category || 'Certificate'}</p>
+      <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1.5rem;">${cert.date ? 'Issued: ' + cert.date : ''}</p>
+      <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+        ${openLinkBtn}
+        <button class="btn-secondary" style="border-color:#ef4444; color:#ef4444; padding:0.5rem 1rem; font-size:0.85rem;" onclick="document.getElementById('admin-cert-modal').remove(); window.deleteCert('${cert.id}');">🗑 Delete</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  modal.querySelector('#close-admin-cert-modal').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+}
+window.previewCertModal = previewCertModal;
 
 async function deleteCert(id) {
   if (confirm('Delete this certificate?')) {
