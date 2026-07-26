@@ -340,9 +340,16 @@ function renderAdminResume() {
   `;
 }
 
-function deleteResume() {
+async function deleteResume() {
   if (confirm('Are you sure you want to delete the custom resume and revert to default?')) {
     localStorage.removeItem('portfolio-resume');
+    if (window.PortfolioUpload && window.PortfolioUpload.db) {
+      try {
+        await window.PortfolioUpload.db.collection('portfolio-resume').doc('current-resume').delete();
+      } catch (e) {
+        console.warn("Firestore delete resume error:", e);
+      }
+    }
     renderAdminResume();
     updateStats();
     showAdminToast('Resume deleted - reverted to default');

@@ -35,8 +35,8 @@ const Storage = {
         const snapshot = await db.collection(key).get();
         const firestoreDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (firestoreDocs.length > 0) {
-          const firestoreIds = new Set(firestoreDocs.map(d => String(d.id)));
-          return [...firestoreDocs, ...localData.filter(i => !firestoreIds.has(String(i.id)))];
+          localStorage.setItem(key, JSON.stringify(firestoreDocs));
+          return firestoreDocs;
         }
       } catch (err) {
         console.warn("Firestore fetch error, falling back to localStorage:", err);
@@ -47,6 +47,21 @@ const Storage = {
   
   set: async (key, data) => {
     localStorage.setItem(key, JSON.stringify(data));
+    if (db) {
+      try {
+        if (Array.isArray(data)) {
+          for (const item of data) {
+            if (item && item.id) {
+              await db.collection(key).doc(String(item.id)).set(item);
+            }
+          }
+        } else if (typeof data === 'object' && data !== null) {
+          await db.collection(key).doc(data.id || 'single').set(data);
+        }
+      } catch (err) {
+        console.warn("Firestore set error:", err);
+      }
+    }
   },
   
   add: async (key, item) => {
@@ -69,6 +84,7 @@ const Storage = {
     if (db && (key === 'portfolio-certs' || key === 'portfolio-projects' || key === 'portfolio-videos' || key === 'portfolio-messages')) {
       try {
         await db.collection(key).doc(item.id).set(item);
+        console.log(`Saved ${key}/${item.id} to Firestore 🔥`);
       } catch (err) {
         console.warn("Firestore add error (saved to localStorage):", err);
       }
@@ -84,6 +100,7 @@ const Storage = {
     if (db) {
       try {
         await db.collection(key).doc(stringId).delete();
+        console.log(`Deleted ${key}/${stringId} from Firestore 🔥`);
       } catch (err) {
         console.warn("Firestore delete error:", err);
       }
@@ -187,6 +204,14 @@ async function handleResumeUpload(file) {
     date: new Date().toISOString()
   };
   localStorage.setItem('portfolio-resume', JSON.stringify(resume));
+  if (db) {
+    try {
+      await db.collection('portfolio-resume').doc('current-resume').set(resume);
+      console.log("Resume uploaded to Firestore 🔥");
+    } catch (err) {
+      console.warn("Firestore resume upload error:", err);
+    }
+  }
   await renderUploadedResume();
   return resume;
 }
@@ -365,18 +390,33 @@ async function renderUploadedVideos() {
 // =============================================
 // RENDER UPLOADED RESUME
 // =============================================
-function renderUploadedResume() {
-  const resumeData = localStorage.getItem('portfolio-resume');
-  if (!resumeData) return;
+async function renderUploadedResume() {
+  let resume = null;
+  if (db) {
+    try {
+      const doc = await db.collection('portfolio-resume').doc('current-resume').get();
+      if (doc.exists) {
+        resume = doc.data();
+        localStorage.setItem('portfolio-resume', JSON.stringify(resume));
+      }
+    } catch (e) {
+      console.warn("Error fetching resume from Firestore:", e);
+    }
+  }
+
+  if (!resume) {
+    const resumeData = localStorage.getItem('portfolio-resume');
+    if (resumeData) {
+      try { resume = JSON.parse(resumeData); } catch (e) {}
+    }
+  }
+  if (!resume) return;
 
   try {
-    const resume = JSON.parse(resumeData);
     const links = document.querySelectorAll('.resume-download-link');
     links.forEach(link => {
       link.href = resume.file;
       link.setAttribute('download', resume.name || 'resume.pdf');
-      // If it's the preview card text, maybe update it? 
-      // For now just the href is most important.
     });
   } catch (e) {
     console.error("Error rendering resume:", e);
