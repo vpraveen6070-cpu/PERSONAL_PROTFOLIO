@@ -320,8 +320,8 @@
   <section id="certificates">
     <div class="container">
       <div class="section-header reveal">
-        <span class="section-label">// achievements</span>
-        <h2 class="section-title">Certificates</h2>
+        <span class="section-label">// verified_credentials</span>
+        <h2 class="section-title">Certifications & Achievements</h2>
         <div class="section-divider">
           <div class="divider-line"></div>
           <div class="divider-dot"></div>
@@ -329,15 +329,24 @@
         </div>
       </div>
 
+      <!-- Category Filter Bar -->
+      <div class="cert-filter-bar" id="cert-filter-bar">
+        <button class="cert-filter-btn active" data-filter="all">All</button>
+        <button class="cert-filter-btn" data-filter="AI & ML">AI & ML</button>
+        <button class="cert-filter-btn" data-filter="Web Development">Web Dev</button>
+        <button class="cert-filter-btn" data-filter="Cloud">Cloud & DevOps</button>
+        <button class="cert-filter-btn" data-filter="General">General</button>
+      </div>
 
+      <!-- Certificates Grid -->
       <div class="certs-grid" id="certs-grid"></div>
 
-    <!-- Upload prompt -->
-    <div style="text-align:center;margin-top:2rem;">
-      <a href="admin/admin.html" class="btn-secondary" style="display:inline-flex;align-items:center;gap:0.5rem;">
-        ⚙ Manage Certificates in Admin
-      </a>
-    </div>
+      <!-- Upload prompt -->
+      <div style="text-align:center;margin-top:2.5rem;">
+        <a href="admin/admin.html" class="btn-secondary" style="display:inline-flex;align-items:center;gap:0.5rem;border-radius:50px;padding:0.7rem 1.6rem;">
+          ⚙ Manage Certificates in Admin
+        </a>
+      </div>
     </div>
   </section>
 

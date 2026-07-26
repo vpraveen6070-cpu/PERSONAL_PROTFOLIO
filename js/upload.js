@@ -348,28 +348,57 @@ async function getCerts() {
   return stored.filter(cleanFilter);
 }
 
-// =============================================
-// RENDER UPLOADED CERTS TO PORTFOLIO
-// =============================================
-async function renderUploadedCerts() {
-  const certs = await getCerts();
+let currentCertFilter = 'all';
+
+function initCertFilterListeners() {
+  const filterBtns = document.querySelectorAll('.cert-filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentCertFilter = e.target.getAttribute('data-filter') || 'all';
+      renderUploadedCerts(currentCertFilter);
+    });
+  });
+}
+
+async function renderUploadedCerts(filterCategory = currentCertFilter) {
+  const allCerts = await getCerts();
   const grid = document.getElementById('certs-grid');
   if (!grid) return;
 
   const manageBtn = document.querySelector('#certificates .btn-secondary');
   if (manageBtn && manageBtn.parentElement) {
-    manageBtn.parentElement.style.display = certs.length > 0 ? 'block' : 'none';
+    manageBtn.parentElement.style.display = allCerts.length > 0 ? 'block' : 'none';
   }
 
-  if (!certs || certs.length === 0) {
+  if (!allCerts || allCerts.length === 0) {
     grid.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 2rem; background: var(--bg-card, rgba(15,15,15,0.85)); border: 1px dashed var(--border-color, rgba(212,175,55,0.3)); border-radius: 20px; backdrop-filter: blur(10px); max-width: 580px; margin: 0 auto;">
-        <div style="font-size: 3rem; margin-bottom: 0.8rem;">📜</div>
-        <h3 style="color: var(--text-primary, #ffffff); font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">No Certificates Added Yet</h3>
-        <p style="color: var(--text-secondary, #a0a0a0); font-size: 0.9rem; line-height: 1.6; margin: 0 auto 1.5rem; max-width: 420px;">Upload your certificates in the Admin Panel to showcase your credentials here in real-time.</p>
+        <div style="font-size: 3.2rem; margin-bottom: 0.8rem; filter: drop-shadow(0 0 12px rgba(212,175,55,0.4));">📜</div>
+        <h3 style="color: var(--text-primary, #ffffff); font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Certificates Added Yet</h3>
+        <p style="color: var(--text-secondary, #a0a0a0); font-size: 0.92rem; line-height: 1.6; margin: 0 auto 1.5rem; max-width: 440px;">Upload your certificates in the Admin Panel to showcase your verified credentials here in real-time.</p>
         <a href="admin/admin.html" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.6rem; font-size: 0.88rem; border-radius: 50px; font-weight: 600;">
-          ⚙ Go to Admin Panel
+          ⚙ Upload Certificates in Admin
         </a>
+      </div>
+    `;
+    return;
+  }
+
+  // Filter certificates by selected category
+  const certs = allCerts.filter(c => {
+    if (filterCategory === 'all') return true;
+    const cat = (c.category || '').toLowerCase();
+    const tag = (c.tags || '').toLowerCase();
+    const target = filterCategory.toLowerCase();
+    return cat.includes(target) || tag.includes(target);
+  });
+
+  if (certs.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 2.5rem 1.5rem; background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 16px;">
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">No certificates found in category "${filterCategory}".</p>
       </div>
     `;
     return;
@@ -377,8 +406,10 @@ async function renderUploadedCerts() {
 
   grid.innerHTML = certs.map((cert, idx) => {
     let previewContent = '';
-    if (cert.file && (cert.file.startsWith('data:image') || cert.file.startsWith('http'))) {
-      previewContent = `<img src="${cert.file}" alt="${cert.name}" style="width:100%;height:100%;object-fit:cover;" class="cert-img">`;
+    const hasImage = cert.file && (cert.file.startsWith('data:image') || cert.file.startsWith('http'));
+    
+    if (hasImage) {
+      previewContent = `<img src="${cert.file}" alt="${cert.name}" class="cert-img" style="width:100%;height:100%;object-fit:cover;">`;
     } else {
       const icon = cert.icon || '🏅';
       const category = cert.category || 'CERTIFIED';
@@ -398,8 +429,11 @@ async function renderUploadedCerts() {
     }
 
     const bgStyle = cert.bg ? `style="background:${cert.bg};"` : '';
-    const issuerHtml = cert.issuer ? `<div class="cert-issuer">🏢 ${cert.issuer}</div>` : '';
-    const viewAttr = cert.file ? `data-lightbox="${cert.file}"` : `onclick="alert('Certificate Details: ${cert.name} (${cert.issuer || 'Verified'})')"`;
+    const issuerText = cert.issuer || 'Verified Credential';
+    const certDate = cert.date || '2024';
+    const viewAttr = hasImage 
+      ? `onclick="window.openCertModal('${cert.file}', '${cert.name.replace(/'/g, "\\'")}')"`
+      : `onclick="alert('Certificate Details:\\n\\nName: ${cert.name}\\nIssuer: ${issuerText}\\nDate: ${certDate}')"`;
 
     return `
       <div class="cert-card cert-reveal stagger-${(idx % 5) + 1}" data-cert-id="${cert.id}">
@@ -410,18 +444,35 @@ async function renderUploadedCerts() {
           </div>
         </div>
         <div class="cert-info">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem;">
+            <span style="font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent-1);background:rgba(212,175,55,0.12);padding:0.18rem 0.6rem;border-radius:50px;border:1px solid rgba(212,175,55,0.25);">
+              ✔ VERIFIED
+            </span>
+            <span style="font-size:0.75rem;color:var(--text-secondary);font-family:var(--font-code);">${cert.category || 'Certificate'}</span>
+          </div>
           <div class="cert-title">${cert.name}</div>
-          ${issuerHtml}
-          <div class="cert-date">🗓 Issued: ${cert.date || '2024'}</div>
+          <div class="cert-meta-row">
+            <div class="cert-issuer">🏢 ${issuerText}</div>
+            <div class="cert-date">🗓 ${certDate}</div>
+          </div>
         </div>
       </div>
     `;
   }).join('');
-
-  if (window.initLightbox) {
-    window.initLightbox();
-  }
 }
+
+// Global modal opener for high-res Lightbox viewing
+window.openCertModal = function(src, title) {
+  const lightbox = document.getElementById('lightbox');
+  const content = document.getElementById('lightbox-content');
+  if (lightbox && content) {
+    content.src = src;
+    content.alt = title || 'Certificate Preview';
+    lightbox.classList.add('open');
+  } else {
+    window.open(src, '_blank');
+  }
+};
 
 
 // =============================================
@@ -757,6 +808,7 @@ async function syncAllToCloud() {
 // INIT ON PAGE LOAD
 // =============================================
 document.addEventListener('DOMContentLoaded', () => {
+  initCertFilterListeners();
   renderUploadedCerts();
   renderUploadedVideos();
   renderUploadedResume();
