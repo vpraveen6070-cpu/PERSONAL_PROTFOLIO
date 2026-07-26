@@ -700,14 +700,11 @@ function initFirestoreListeners() {
             if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
           }
         } else {
-          const local = JSON.parse(localStorage.getItem(key)) || [];
-          if (local.length > 0) {
-            for (const item of local) {
-              if (item && item.id) {
-                db.collection(key).doc(String(item.id)).set(item).catch(console.warn);
-              }
-            }
-          }
+          // Firestore is empty — clear localStorage to match (never re-push)
+          localStorage.setItem(key, JSON.stringify([]));
+          if (key === 'portfolio-certs') renderUploadedCerts();
+          if (key === 'portfolio-projects') renderProjects();
+          if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
         }
       }, err => {
         console.warn(`Firestore onSnapshot warning for ${key}:`, err);
