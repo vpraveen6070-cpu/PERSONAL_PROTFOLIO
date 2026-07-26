@@ -262,6 +262,7 @@
           <h3 class="admin-card-title">Data Management</h3>
           <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem;">
             <button class="btn-secondary" onclick="exportData()">📤 Export All Data</button>
+            <button class="btn-secondary" style="border-color:var(--accent-1);color:var(--accent-1);" onclick="syncCloudData()">☁ Sync Local Data to Cloud</button>
             <button class="btn-secondary" style="border-color:#ef4444;color:#ef4444;" onclick="confirmClearData()">🗑
               Clear All Data</button>
           </div>
@@ -274,10 +275,10 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="../js/firebase-config.js?v=4"></script>
+  <script src="../js/firebase-config.js?v=5"></script>
 
-  <script src="../js/upload.js?v=4"></script>
-  <script src="admin.js?v=4"></script>
+  <script src="../js/upload.js?v=5"></script>
+  <script src="admin.js?v=5"></script>
 </body>
 
 </html>

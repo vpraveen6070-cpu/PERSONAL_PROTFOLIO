@@ -37,6 +37,14 @@ const Storage = {
         if (firestoreDocs.length > 0) {
           localStorage.setItem(key, JSON.stringify(firestoreDocs));
           return firestoreDocs;
+        } else if (localData.length > 0) {
+          // If Firestore is empty, auto-push local items to Cloud Firestore
+          for (const item of localData) {
+            if (item && item.id) {
+              db.collection(key).doc(String(item.id)).set(item).catch(console.warn);
+            }
+          }
+          return localData;
         }
       } catch (err) {
         console.warn("Firestore fetch error, falling back to localStorage:", err);
@@ -629,6 +637,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderUploadedResume();
   renderProjects();
   initFirestoreListeners();
+  syncAllToCloud().catch(console.warn);
 });
 
 // Export for admin
@@ -637,5 +646,5 @@ window.PortfolioUpload = {
   renderUploadedCerts, renderUploadedVideos, renderUploadedResume,
   renderProjects, getProjects, DEFAULT_PROJECTS,
   getCerts, DEFAULT_CERTS,
-  Storage, openVideoModal, db
+  Storage, openVideoModal, db, syncAllToCloud
 };

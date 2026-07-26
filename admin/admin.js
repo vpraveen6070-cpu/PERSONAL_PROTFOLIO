@@ -489,6 +489,22 @@ async function exportData() {
 }
 window.exportData = exportData;
 
+async function syncCloudData() {
+  if (window.PortfolioUpload && window.PortfolioUpload.syncAllToCloud) {
+    showAdminToast('Syncing data to Cloud Firestore...');
+    const ok = await window.PortfolioUpload.syncAllToCloud();
+    if (ok) {
+      showAdminToast('All data synced to Cloud Firestore! 🔥');
+      await renderAdminCerts();
+      await renderAdminProjects();
+      await updateStats();
+    } else {
+      showAdminToast('Cloud sync failed - check connection/rules', 'error');
+    }
+  }
+}
+window.syncCloudData = syncCloudData;
+
 async function confirmClearData() {
   if (confirm('⚠ This will delete ALL uploaded certificates and projects. Are you sure?')) {
     if (!window.PortfolioUpload) return;
