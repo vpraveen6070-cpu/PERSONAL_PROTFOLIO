@@ -13,9 +13,11 @@ let db = null;
 // Initialize Firebase if config is valid
 if (typeof firebase !== 'undefined' && window.firebaseConfig && window.firebaseConfig.apiKey !== 'YOUR_API_KEY') {
   try {
-    firebase.initializeApp(window.firebaseConfig);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(window.firebaseConfig);
+      console.log("Firebase initialized successfully! 🔥");
+    }
     db = firebase.firestore();
-    console.log("Firebase initialized successfully! 🔥");
   } catch (err) {
     console.error("Firebase initialization failed:", err);
   }
@@ -317,13 +319,38 @@ async function addVideoEmbed(title, embedUrl, description) {
 // =============================================
 // CERTIFICATES RETRIEVAL
 // =============================================
-const DEFAULT_CERTS = [];
+const DEFAULT_CERTS = [
+  {
+    id: 'cert-def-1',
+    name: 'GDG WOWFest 2026 Participation Certificate',
+    issuer: 'Google Developer Groups',
+    category: 'AI & ML',
+    date: 'July 2026',
+    icon: '🏆',
+    bg: 'radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.2), rgba(10, 12, 18, 0.98))'
+  },
+  {
+    id: 'cert-def-2',
+    name: 'Web Development Internship Certificate',
+    issuer: 'GenZ Educate Wing',
+    category: 'Web Development',
+    date: 'July 2026',
+    icon: '💻',
+    bg: 'radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.2), rgba(10, 12, 18, 0.98))'
+  }
+];
 
 async function getCerts() {
   let local = [];
   try {
-    local = JSON.parse(localStorage.getItem('portfolio-certs')) || [];
-  } catch (e) { local = []; }
+    const raw = localStorage.getItem('portfolio-certs');
+    if (!raw) {
+      localStorage.setItem('portfolio-certs', JSON.stringify(DEFAULT_CERTS));
+      local = DEFAULT_CERTS;
+    } else {
+      local = JSON.parse(raw) || [];
+    }
+  } catch (e) { local = DEFAULT_CERTS; }
   
   const cleanFilter = c => {
     if (!c || !c.id) return false;
@@ -332,17 +359,7 @@ async function getCerts() {
   };
 
   const cleanLocal = local.filter(cleanFilter);
-
-  Storage.get('portfolio-certs').then(stored => {
-    if (stored && Array.isArray(stored)) {
-      const cleaned = stored.filter(cleanFilter);
-      if (cleaned.length !== cleanLocal.length) {
-        renderUploadedCerts();
-      }
-    }
-  }).catch(() => {});
-
-  return cleanLocal;
+  return cleanLocal.length > 0 ? cleanLocal : DEFAULT_CERTS;
 }
 
 let currentCertFilter = 'all';
@@ -694,18 +711,24 @@ async function renderProjects() {
 // REALTIME FIRESTORE LISTENERS FOR CROSS-DEVICE SYNC
 // =============================================
 function initFirestoreListeners() {
-  if (!db) return;
+  if (!db || window.__firestoreListenersInitialized) return;
+  window.__firestoreListenersInitialized = true;
+
   const collections = ['portfolio-certs', 'portfolio-projects', 'portfolio-videos', 'portfolio-messages'];
   collections.forEach(key => {
     try {
       db.collection(key).onSnapshot(snapshot => {
         const firestoreDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (firestoreDocs.length > 0) {
-          localStorage.setItem(key, JSON.stringify(firestoreDocs));
-          if (key === 'portfolio-certs') renderUploadedCerts();
-          if (key === 'portfolio-projects') renderProjects();
-          if (key === 'portfolio-videos') renderUploadedVideos();
-          if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
+          const currentLocal = localStorage.getItem(key);
+          const newJson = JSON.stringify(firestoreDocs);
+          if (currentLocal !== newJson) {
+            localStorage.setItem(key, newJson);
+            if (key === 'portfolio-certs') renderUploadedCerts();
+            if (key === 'portfolio-projects') renderProjects();
+            if (key === 'portfolio-videos') renderUploadedVideos();
+            if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
+          }
         } else {
           const local = JSON.parse(localStorage.getItem(key)) || [];
           if (local.length > 0) {
@@ -714,12 +737,6 @@ function initFirestoreListeners() {
                 db.collection(key).doc(String(item.id)).set(item).catch(console.warn);
               }
             }
-          } else {
-            localStorage.setItem(key, JSON.stringify([]));
-            if (key === 'portfolio-certs') renderUploadedCerts();
-            if (key === 'portfolio-projects') renderProjects();
-            if (key === 'portfolio-videos') renderUploadedVideos();
-            if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
           }
         }
       }, err => {
@@ -734,8 +751,12 @@ function initFirestoreListeners() {
     db.collection('portfolio-resume').doc('current-resume').onSnapshot(doc => {
       if (doc.exists) {
         const resume = doc.data();
-        localStorage.setItem('portfolio-resume', JSON.stringify(resume));
-        renderUploadedResume();
+        const currentLocal = localStorage.getItem('portfolio-resume');
+        const newJson = JSON.stringify(resume);
+        if (currentLocal !== newJson) {
+          localStorage.setItem('portfolio-resume', newJson);
+          renderUploadedResume();
+        }
       }
     });
   } catch (e) {}
