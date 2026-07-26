@@ -20,8 +20,8 @@
   --font-heading: 'Outfit', sans-serif;
 }
 
-[data-theme="dark"] ::-webkit-scrollbar { width: 8px; background: #000000; }
-[data-theme="dark"] ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #d4af37, #8b7322); border-radius: 10px; }
+[data-theme="dark"] ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { display: none; }
 [data-theme="dark"] ::selection { background: rgba(212, 175, 55, 0.25); color: #d4af37; }
 
 [data-theme="dark"] .section-title {
@@ -60,8 +60,8 @@
   --font-heading: 'Outfit', sans-serif;
 }
 
-[data-theme="normal"] ::-webkit-scrollbar { width: 8px; background: #f4f4f4; }
-[data-theme="normal"] ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #b8860b, #d4af37); border-radius: 10px; }
+[data-theme="normal"] ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+[data-theme="normal"] ::-webkit-scrollbar-thumb { display: none; }
 [data-theme="normal"] ::selection { background: rgba(184, 134, 11, 0.2); color: #000000; }
 
 [data-theme="normal"] .section-title {

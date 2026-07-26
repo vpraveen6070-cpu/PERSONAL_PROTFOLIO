@@ -21,6 +21,34 @@ if (typeof firebase !== 'undefined' && window.firebaseConfig && window.firebaseC
   }
 }
 
+function triggerGlobalReRender() {
+  if (typeof renderUploadedCerts === 'function') renderUploadedCerts();
+  if (typeof renderProjects === 'function') renderProjects();
+  if (typeof renderUploadedVideos === 'function') renderUploadedVideos();
+  if (typeof renderUploadedResume === 'function') renderUploadedResume();
+  if (typeof window.renderAdminCerts === 'function') window.renderAdminCerts();
+  if (typeof window.renderAdminProjects === 'function') window.renderAdminProjects();
+  if (typeof window.renderAdminMessages === 'function') window.renderAdminMessages();
+  if (typeof window.updateStats === 'function') window.updateStats();
+}
+
+function dispatchStorageChange(key) {
+  try {
+    window.dispatchEvent(new CustomEvent('portfolioDataChanged', { detail: { key } }));
+  } catch (e) {}
+  triggerGlobalReRender();
+}
+
+window.addEventListener('storage', (e) => {
+  if (!e.key || ['portfolio-certs', 'portfolio-projects', 'portfolio-videos', 'portfolio-messages', 'portfolio-resume'].includes(e.key)) {
+    triggerGlobalReRender();
+  }
+});
+
+window.addEventListener('portfolioDataChanged', () => {
+  triggerGlobalReRender();
+});
+
 const Storage = {
   get: async (key) => {
     let localData = [];
@@ -55,6 +83,7 @@ const Storage = {
   
   set: async (key, data) => {
     localStorage.setItem(key, JSON.stringify(data));
+    dispatchStorageChange(key);
     if (db) {
       try {
         if (Array.isArray(data)) {
@@ -80,6 +109,7 @@ const Storage = {
       arr.unshift(item);
       try {
         localStorage.setItem(key, JSON.stringify(arr));
+        dispatchStorageChange(key);
       } catch (quotaErr) {
         console.error("Storage quota exceeded:", quotaErr);
         if (window.showAdminToast) {
@@ -104,6 +134,7 @@ const Storage = {
     const stringId = String(id);
     const arr = (JSON.parse(localStorage.getItem(key)) || []).filter(i => String(i.id) !== stringId);
     localStorage.setItem(key, JSON.stringify(arr));
+    dispatchStorageChange(key);
 
     if (db) {
       try {
@@ -115,6 +146,49 @@ const Storage = {
     }
     return arr;
   },
+
+  clear: async (key) => {
+    localStorage.setItem(key, JSON.stringify([]));
+    dispatchStorageChange(key);
+    if (db) {
+      try {
+        const snapshot = await db.collection(key).get();
+        if (!snapshot.empty) {
+          const batch = db.batch();
+          snapshot.docs.forEach(doc => batch.delete(doc.ref));
+          await batch.commit();
+        }
+        console.log(`Cleared ${key} from Firestore 🔥`);
+      } catch (err) {
+        console.warn(`Firestore clear error for ${key}:`, err);
+      }
+    }
+  },
+
+  clearAll: async () => {
+    const keys = ['portfolio-certs', 'portfolio-projects', 'portfolio-videos', 'portfolio-messages', 'portfolio-resume'];
+    for (const key of keys) {
+      localStorage.setItem(key, JSON.stringify([]));
+      dispatchStorageChange(key);
+      if (db) {
+        try {
+          if (key === 'portfolio-resume') {
+            await db.collection('portfolio-resume').doc('current-resume').delete();
+          } else {
+            const snapshot = await db.collection(key).get();
+            if (!snapshot.empty) {
+              const batch = db.batch();
+              snapshot.docs.forEach(doc => batch.delete(doc.ref));
+              await batch.commit();
+            }
+          }
+          console.log(`Cleared ${key} from Firestore 🔥`);
+        } catch (err) {
+          console.warn(`Firestore clear error for ${key}:`, err);
+        }
+      }
+    }
+  }
 };
 
 // =============================================
@@ -212,6 +286,7 @@ async function handleResumeUpload(file) {
     date: new Date().toISOString()
   };
   localStorage.setItem('portfolio-resume', JSON.stringify(resume));
+  dispatchStorageChange('portfolio-resume');
   if (db) {
     try {
       await db.collection('portfolio-resume').doc('current-resume').set(resume);
@@ -517,13 +592,11 @@ function initFirestoreListeners() {
     try {
       db.collection(key).onSnapshot(snapshot => {
         const firestoreDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (firestoreDocs.length > 0) {
-          localStorage.setItem(key, JSON.stringify(firestoreDocs));
-          if (key === 'portfolio-certs') renderUploadedCerts();
-          if (key === 'portfolio-projects') renderProjects();
-          if (key === 'portfolio-videos') renderUploadedVideos();
-          if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
-        }
+        localStorage.setItem(key, JSON.stringify(firestoreDocs));
+        if (key === 'portfolio-certs') renderUploadedCerts();
+        if (key === 'portfolio-projects') renderProjects();
+        if (key === 'portfolio-videos') renderUploadedVideos();
+        if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
       }, err => {
         console.warn(`Firestore onSnapshot warning for ${key}:`, err);
       });

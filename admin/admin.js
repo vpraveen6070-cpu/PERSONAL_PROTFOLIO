@@ -517,17 +517,35 @@ async function syncCloudData() {
 window.syncCloudData = syncCloudData;
 
 async function confirmClearData() {
-  if (confirm('⚠ This will delete ALL uploaded certificates and projects. Are you sure?')) {
-    if (!window.PortfolioUpload) return;
-    // For clear all, we should probably clear both local and firestore if possible
-    // But for now we focus on the main keys
-    localStorage.removeItem('portfolio-certs');
-    localStorage.removeItem('portfolio-projects');
-    // Note: This won't clear entire Firestore collections, but is a safe start
-    await renderAdminCerts();
-    await renderAdminProjects();
-    await updateStats();
-    showAdminToast('Local data cleared');
+  if (confirm('⚠ This will PERMANENTLY delete all uploaded certificates, projects, videos, and messages from both Local and Cloud storage. Are you sure?')) {
+    try {
+      showAdminToast('Clearing all data...');
+      if (window.PortfolioUpload && window.PortfolioUpload.Storage && window.PortfolioUpload.Storage.clearAll) {
+        await window.PortfolioUpload.Storage.clearAll();
+      } else {
+        localStorage.removeItem('portfolio-certs');
+        localStorage.removeItem('portfolio-projects');
+        localStorage.removeItem('portfolio-videos');
+        localStorage.removeItem('portfolio-messages');
+        localStorage.removeItem('portfolio-resume');
+      }
+
+      if (window.PortfolioUpload) {
+        if (window.PortfolioUpload.renderUploadedCerts) await window.PortfolioUpload.renderUploadedCerts();
+        if (window.PortfolioUpload.renderProjects) await window.PortfolioUpload.renderProjects();
+        if (window.PortfolioUpload.renderUploadedResume) await window.PortfolioUpload.renderUploadedResume();
+      }
+
+      await renderAdminCerts();
+      await renderAdminProjects();
+      await renderAdminMessages();
+      await updateStats();
+
+      showAdminToast('All local & cloud data cleared! 🗑️');
+    } catch (err) {
+      console.error("Error clearing data:", err);
+      showAdminToast('Error clearing data: ' + (err.message || err), 'error');
+    }
   }
 }
 window.confirmClearData = confirmClearData;
