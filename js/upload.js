@@ -362,21 +362,7 @@ async function getCerts() {
   return cleanLocal.length > 0 ? cleanLocal : DEFAULT_CERTS;
 }
 
-let currentCertFilter = 'all';
-
-function initCertFilterListeners() {
-  const filterBtns = document.querySelectorAll('.cert-filter-btn');
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      currentCertFilter = e.target.getAttribute('data-filter') || 'all';
-      renderUploadedCerts(currentCertFilter);
-    });
-  });
-}
-
-async function renderUploadedCerts(filterCategory = currentCertFilter) {
+async function renderUploadedCerts() {
   const allCerts = await getCerts();
   const grid = document.getElementById('certs-grid');
   if (!grid) return;
@@ -400,23 +386,7 @@ async function renderUploadedCerts(filterCategory = currentCertFilter) {
     return;
   }
 
-  // Filter certificates by selected category
-  const certs = allCerts.filter(c => {
-    if (filterCategory === 'all') return true;
-    const cat = (c.category || '').toLowerCase();
-    const tag = (c.tags || '').toLowerCase();
-    const target = filterCategory.toLowerCase();
-    return cat.includes(target) || tag.includes(target);
-  });
-
-  if (certs.length === 0) {
-    grid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 2.5rem 1.5rem; background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 16px;">
-        <p style="color: var(--text-secondary); font-size: 0.95rem;">No certificates found in category "${filterCategory}".</p>
-      </div>
-    `;
-    return;
-  }
+  const certs = allCerts;
 
   grid.innerHTML = certs.map((cert, idx) => {
     let previewContent = '';
@@ -473,6 +443,19 @@ async function renderUploadedCerts(filterCategory = currentCertFilter) {
       </div>
     `;
   }).join('');
+
+  // Fix: certificates are created asynchronously,
+  // so activate them after they enter the DOM
+  requestAnimationFrame(() => {
+    grid.querySelectorAll('.cert-reveal').forEach((card, index) => {
+      card.style.transitionDelay = `${index * 100}ms`;
+      card.classList.add('active');
+    });
+  });
+
+  if (window.initLightbox) {
+    window.initLightbox();
+  }
 }
 
 // Global modal opener for high-res Lightbox viewing
@@ -823,7 +806,6 @@ async function syncAllToCloud() {
 // INIT ON PAGE LOAD
 // =============================================
 document.addEventListener('DOMContentLoaded', () => {
-  initCertFilterListeners();
   renderUploadedCerts();
   renderUploadedVideos();
   renderUploadedResume();
