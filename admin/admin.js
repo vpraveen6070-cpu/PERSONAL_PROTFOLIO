@@ -22,6 +22,25 @@ function getAdminPassword() {
   return localStorage.getItem('admin-password') || DEFAULT_PASSWORD;
 }
 
+// Load password from Firestore on startup so it works globally across devices
+async function syncPasswordFromCloud() {
+  try {
+    const firestoreDb = (window.PortfolioUpload && window.PortfolioUpload.db)
+      ? window.PortfolioUpload.db
+      : (window.firebase && firebase.apps.length ? firebase.firestore() : null);
+    if (!firestoreDb) return;
+    const doc = await firestoreDb.collection('portfolio-settings').doc('admin').get();
+    if (doc.exists && doc.data().password) {
+      localStorage.setItem('admin-password', doc.data().password);
+    }
+  } catch (e) {
+    console.warn('Could not sync password from cloud:', e);
+  }
+}
+
+// Run sync immediately
+document.addEventListener('DOMContentLoaded', () => syncPasswordFromCloud());
+
 document.getElementById('admin-login-btn')?.addEventListener('click', () => {
   const pwd = document.getElementById('admin-password').value;
   if (pwd === getAdminPassword()) {
@@ -526,17 +545,32 @@ window.deleteProject = deleteProject;
 // =============================================
 // SETTINGS
 // =============================================
-document.getElementById('change-pwd-btn')?.addEventListener('click', () => {
+document.getElementById('change-pwd-btn')?.addEventListener('click', async () => {
   const current = document.getElementById('current-pwd').value;
   const newPwd = document.getElementById('new-pwd').value;
 
   if (current !== getAdminPassword()) { showAdminToast('Current password is wrong', 'error'); return; }
   if (newPwd.length < 4) { showAdminToast('Password too short', 'error'); return; }
 
+  // 1. Save to localStorage
   localStorage.setItem('admin-password', newPwd);
+
+  // 2. Save to Firestore for global sync
+  try {
+    const firestoreDb = (window.PortfolioUpload && window.PortfolioUpload.db)
+      ? window.PortfolioUpload.db
+      : (window.firebase && firebase.apps.length ? firebase.firestore() : null);
+    if (firestoreDb) {
+      await firestoreDb.collection('portfolio-settings').doc('admin').set({ password: newPwd }, { merge: true });
+      console.log('Password saved to Firestore ✓');
+    }
+  } catch (e) {
+    console.warn('Could not save password to cloud:', e);
+  }
+
   document.getElementById('current-pwd').value = '';
   document.getElementById('new-pwd').value = '';
-  showAdminToast('Password updated!');
+  showAdminToast('Password updated globally ✓');
 });
 
 async function exportData() {
