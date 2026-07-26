@@ -323,7 +323,25 @@ function initSmoothScroll() {
       if (href && href !== '#' && href.length > 1) {
         e.preventDefault();
         const target = document.querySelector(href);
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (target) {
+          const navbar = document.getElementById('navbar');
+          const offset = navbar ? navbar.offsetHeight : 80;
+          const elementPosition = target.getBoundingClientRect().top + window.scrollY;
+          const offsetPosition = elementPosition - offset - 15; // 15px extra breathing room
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+          
+          // Close mobile menu if open
+          const mobileMenu = document.getElementById('mobile-nav-menu');
+          const hamburger = document.querySelector('.hamburger');
+          if (mobileMenu && mobileMenu.classList.contains('open')) {
+            mobileMenu.classList.remove('open');
+            if (hamburger) hamburger.classList.remove('active');
+          }
+        }
       }
     });
   });
