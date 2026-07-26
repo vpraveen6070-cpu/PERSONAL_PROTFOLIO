@@ -55,7 +55,15 @@ const Storage = {
     const arr = JSON.parse(localStorage.getItem(key)) || [];
     if (!arr.some(i => String(i.id) === String(item.id))) {
       arr.unshift(item);
-      localStorage.setItem(key, JSON.stringify(arr));
+      try {
+        localStorage.setItem(key, JSON.stringify(arr));
+      } catch (quotaErr) {
+        console.error("Storage quota exceeded:", quotaErr);
+        if (window.showAdminToast) {
+          window.showAdminToast("Storage full! Remove older files to add more.", "error");
+        }
+        return null;
+      }
     }
 
     if (db && (key === 'portfolio-certs' || key === 'portfolio-projects' || key === 'portfolio-videos' || key === 'portfolio-messages')) {
@@ -85,8 +93,52 @@ const Storage = {
 };
 
 // =============================================
-// FILE READER UTILITY
+// IMAGE COMPRESSION & FILE READER UTILITIES
 // =============================================
+function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
+  return new Promise((resolve) => {
+    if (!file.type || !file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = () => resolve(e.target.result);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
 function readFileAsDataURL(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -103,17 +155,20 @@ async function handleCertUpload(files, category = 'General') {
   const results = [];
   for (const file of files) {
     if (!file.type.match(/image\/*|application\/pdf/)) continue;
-    const dataURL = await readFileAsDataURL(file);
+    const dataURL = await compressImage(file);
+    if (!dataURL) continue;
     const cert = {
       id: String(Date.now() + Math.floor(Math.random() * 1000000)),
       name: file.name.replace(/\.[^/.]+$/, ''),
       category,
       file: dataURL,
-      type: file.type,
+      type: file.type.startsWith('image/') ? 'image/jpeg' : file.type,
       date: new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long' }),
     };
-    await Storage.add('portfolio-certs', cert);
-    results.push(cert);
+    const added = await Storage.add('portfolio-certs', cert);
+    if (added) {
+      results.push(cert);
+    }
   }
   return results;
 }
