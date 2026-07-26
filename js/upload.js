@@ -240,86 +240,13 @@ async function addVideoEmbed(title, embedUrl, description) {
 }
 
 // =============================================
-// DEFAULT CERTIFICATES & RETRIEVAL
+// CERTIFICATES RETRIEVAL
 // =============================================
-const DEFAULT_CERTS = [
-  {
-    id: 'default-cert-1',
-    name: 'Machine Learning Specialization',
-    issuer: 'Coursera / Andrew Ng',
-    date: '2024',
-    icon: '⚙️',
-    bg: 'linear-gradient(135deg,#1a1a3e,#4c1d95)',
-    file: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
-    type: 'image/jpeg'
-  },
-  {
-    id: 'default-cert-2',
-    name: 'Deep Learning with TensorFlow',
-    issuer: 'Google / Coursera',
-    date: '2024',
-    icon: '⚡',
-    bg: 'linear-gradient(135deg,#0f4c75,#1b262c)',
-    file: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800&q=80',
-    type: 'image/jpeg'
-  },
-  {
-    id: 'default-cert-3',
-    name: 'Python for Data Science',
-    issuer: 'IBM / edX',
-    date: '2023',
-    icon: '💻',
-    bg: 'linear-gradient(135deg,#1a3a1a,#2d6a2d)',
-    file: 'https://images.unsplash.com/photo-1526379095098-d400fd0bfce8?w=800&q=80',
-    type: 'image/jpeg'
-  },
-  {
-    id: 'default-cert-4',
-    name: 'Google Cloud Fundamentals',
-    issuer: 'Google Cloud',
-    date: '2024',
-    icon: '🌐',
-    bg: 'linear-gradient(135deg,#1e1a3e,#2d1b69)',
-    file: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
-    type: 'image/jpeg'
-  },
-  {
-    id: 'default-cert-5',
-    name: 'Data Science Professional',
-    issuer: 'IBM / Coursera',
-    date: '2023',
-    icon: '📊',
-    bg: 'linear-gradient(135deg,#3a1a1a,#6a2d2d)',
-    file: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
-    type: 'image/jpeg'
-  },
-  {
-    id: 'default-cert-6',
-    name: 'AI for Everyone',
-    issuer: 'Coursera / Andrew Ng',
-    date: '2023',
-    icon: '🛡️',
-    bg: 'linear-gradient(135deg,#1a3a3a,#0e7490)',
-    file: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80',
-    type: 'image/jpeg'
-  }
-];
+const DEFAULT_CERTS = [];
 
 async function getCerts() {
-  const stored = await Storage.get('portfolio-certs');
-  if (!stored || stored.length === 0) {
-    if (!localStorage.getItem('portfolio-certs-initialized')) {
-      localStorage.setItem('portfolio-certs', JSON.stringify(DEFAULT_CERTS));
-      localStorage.setItem('portfolio-certs-initialized', 'true');
-      if (db) {
-        for (const cert of DEFAULT_CERTS) {
-          db.collection('portfolio-certs').doc(String(cert.id)).set(cert).catch(console.warn);
-        }
-      }
-      return DEFAULT_CERTS;
-    }
-  }
-  return stored || [];
+  const stored = (await Storage.get('portfolio-certs')) || [];
+  return stored.filter(cert => cert && cert.id && !String(cert.id).startsWith('default-cert-'));
 }
 
 // =============================================
@@ -492,62 +419,13 @@ function initDragDrop(dropZoneId, onFileDrop) {
 }
 
 // =============================================
-// PROJECTS MANAGEMENT (DEFAULT & DYNAMIC)
+// PROJECTS MANAGEMENT
 // =============================================
-const DEFAULT_PROJECTS = [
-  {
-    id: 'default-proj-1',
-    title: 'AI Image Classifier',
-    icon: '🤖',
-    tech: 'Python, TensorFlow, CNN',
-    desc: 'Deep learning model that classifies images with 95%+ accuracy using Convolutional Neural Networks. Trained on custom datasets with data augmentation techniques.',
-    github: 'https://github.com/vpraveen6070-cpu',
-    demo: ''
-  },
-  {
-    id: 'default-proj-2',
-    title: 'ML Sentiment Analyzer',
-    icon: '📊',
-    tech: 'Python, Scikit-learn, Pandas',
-    desc: 'Natural Language Processing model that analyzes sentiment in social media posts and reviews. Built with BERT and fine-tuned for domain-specific data.',
-    github: 'https://github.com/vpraveen6070-cpu',
-    demo: ''
-  },
-  {
-    id: 'default-proj-3',
-    title: 'House Price Predictor',
-    icon: '🏠',
-    tech: 'Python, Flask, ML',
-    desc: 'Machine learning web app that predicts housing prices based on location, features, and market trends. Deployed with Flask API and interactive front-end.',
-    github: 'https://github.com/vpraveen6070-cpu',
-    demo: ''
-  },
-  {
-    id: 'default-proj-4',
-    title: 'AI Chatbot Assistant',
-    icon: '💬',
-    tech: 'Python, NLP, Streamlit',
-    desc: 'Intelligent conversational AI assistant built with transformer models. Features context-aware responses, multi-turn conversations, and topic-specific knowledge.',
-    github: 'https://github.com/vpraveen6070-cpu',
-    demo: ''
-  }
-];
+const DEFAULT_PROJECTS = [];
 
 async function getProjects() {
-  const stored = await Storage.get('portfolio-projects');
-  if (!stored || stored.length === 0) {
-    if (!localStorage.getItem('portfolio-projects-initialized')) {
-      localStorage.setItem('portfolio-projects', JSON.stringify(DEFAULT_PROJECTS));
-      localStorage.setItem('portfolio-projects-initialized', 'true');
-      if (db) {
-        for (const proj of DEFAULT_PROJECTS) {
-          db.collection('portfolio-projects').doc(String(proj.id)).set(proj).catch(console.warn);
-        }
-      }
-      return DEFAULT_PROJECTS;
-    }
-  }
-  return stored || [];
+  const stored = (await Storage.get('portfolio-projects')) || [];
+  return stored.filter(p => p && p.id && !String(p.id).startsWith('default-proj-'));
 }
 
 async function renderProjects() {
@@ -628,10 +506,37 @@ function initFirestoreListeners() {
   } catch (e) {}
 }
 
+async function cleanLegacyDefaults() {
+  try {
+    ['portfolio-certs', 'portfolio-projects'].forEach(key => {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          const items = JSON.parse(raw) || [];
+          const filtered = items.filter(i => i && i.id && !String(i.id).startsWith('default-'));
+          localStorage.setItem(key, JSON.stringify(filtered));
+        } catch(e) {}
+      }
+    });
+
+    if (db) {
+      const defaultDocIds = [
+        'default-proj-1', 'default-proj-2', 'default-proj-3', 'default-proj-4',
+        'default-cert-1', 'default-cert-2', 'default-cert-3', 'default-cert-4', 'default-cert-5', 'default-cert-6'
+      ];
+      for (const id of defaultDocIds) {
+        const col = id.startsWith('default-proj') ? 'portfolio-projects' : 'portfolio-certs';
+        db.collection(col).doc(id).delete().catch(() => {});
+      }
+    }
+  } catch (e) {}
+}
+
 // =============================================
 // INIT ON PAGE LOAD
 // =============================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await cleanLegacyDefaults();
   renderUploadedCerts();
   renderUploadedVideos();
   renderUploadedResume();
