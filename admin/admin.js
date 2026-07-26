@@ -254,7 +254,8 @@ async function renderAdminMessages() {
   if (!list) return;
 
   try {
-    const messages = window.PortfolioUpload ? await window.PortfolioUpload.Storage.get('portfolio-messages') : (JSON.parse(localStorage.getItem('portfolio-messages')) || []);
+    // Always read directly from localStorage for instant, non-blocking render
+    const messages = JSON.parse(localStorage.getItem('portfolio-messages')) || [];
 
     if (!messages || messages.length === 0) {
       list.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;padding:0.5rem 0;">No messages received yet.</p>';
