@@ -236,9 +236,6 @@ function initContactForm() {
     const successMsg = form.querySelector('.form-success-msg');
     const originalText = btn.innerHTML;
 
-    btn.innerHTML = '⏳ Sending...';
-    btn.disabled = true;
-
     // Capture form data
     const formData = {
       name: document.getElementById('contact-name').value.trim(),
@@ -247,6 +244,27 @@ function initContactForm() {
       message: document.getElementById('contact-message').value.trim(),
       date: new Date().toISOString()
     };
+
+    // ── Validation ──────────────────────────────────────────────────────
+    if (!formData.name) {
+      showToast('Please enter your name.', 'error');
+      document.getElementById('contact-name').focus();
+      return;
+    }
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      showToast('Please enter a valid email address.', 'error');
+      document.getElementById('contact-email').focus();
+      return;
+    }
+    if (!formData.message) {
+      showToast('Please enter a message before sending.', 'error');
+      document.getElementById('contact-message').focus();
+      return;
+    }
+    // ────────────────────────────────────────────────────────────────────
+
+    btn.innerHTML = '⏳ Sending...';
+    btn.disabled = true;
 
     // Save to Firestore
     const savePromise = window.PortfolioUpload ? window.PortfolioUpload.Storage.add('portfolio-messages', formData) : Promise.resolve();
