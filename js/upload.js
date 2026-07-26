@@ -246,7 +246,11 @@ const DEFAULT_CERTS = [];
 
 async function getCerts() {
   const stored = (await Storage.get('portfolio-certs')) || [];
-  return stored.filter(cert => cert && cert.id && !String(cert.id).startsWith('default-cert-'));
+  return stored.filter(c => {
+    if (!c || !c.id) return false;
+    const text = JSON.stringify(c).toLowerCase();
+    return !text.includes('automated test') && !text.includes('cloud sync') && !text.includes('test project');
+  });
 }
 
 // =============================================
@@ -264,29 +268,42 @@ async function renderUploadedCerts() {
 
   grid.innerHTML = certs.map((cert, idx) => {
     let previewContent = '';
-    if (cert.icon) {
-      previewContent = `<span style="font-size:4rem;">${cert.icon}</span>`;
-    } else if (cert.type === 'application/pdf') {
-      previewContent = `<span style="font-size:4rem;">📄</span>`;
+    if (cert.file && (cert.file.startsWith('data:image') || cert.file.startsWith('http'))) {
+      previewContent = `<img src="${cert.file}" alt="${cert.name}" style="width:100%;height:100%;object-fit:cover;" class="cert-img">`;
     } else {
-      previewContent = `<img src="${cert.file}" alt="${cert.name}" style="width:100%;height:100%;object-fit:cover;">`;
+      const icon = cert.icon || '🏅';
+      const category = cert.category || 'CERTIFIED';
+      const issuer = cert.issuer || 'Official Credential';
+      previewContent = `
+        <div class="cert-badge-wrapper">
+          <div class="cert-badge-top">
+            <span class="cert-live-dot"></span>
+            <span class="cert-badge-cat">${category}</span>
+          </div>
+          <div class="cert-badge-ring">
+            <span class="cert-badge-emoji">${icon}</span>
+          </div>
+          <div class="cert-badge-sub">${issuer}</div>
+        </div>
+      `;
     }
 
     const bgStyle = cert.bg ? `style="background:${cert.bg};"` : '';
-    const issuerHtml = cert.issuer ? `<div class="cert-issuer">${cert.issuer}</div>` : '';
+    const issuerHtml = cert.issuer ? `<div class="cert-issuer">🏢 ${cert.issuer}</div>` : '';
+    const viewAttr = cert.file ? `data-lightbox="${cert.file}"` : `onclick="alert('Certificate Details: ${cert.name} (${cert.issuer || 'Verified'})')"`;
 
     return `
       <div class="cert-card cert-reveal stagger-${(idx % 5) + 1}" data-cert-id="${cert.id}">
         <div class="cert-preview" ${bgStyle}>
           ${previewContent}
           <div class="cert-overlay">
-            <span class="cert-view-btn" data-lightbox="${cert.file}">👁 View Certificate</span>
+            <span class="cert-view-btn" ${viewAttr}>👁 View Certificate</span>
           </div>
         </div>
         <div class="cert-info">
           <div class="cert-title">${cert.name}</div>
           ${issuerHtml}
-          <div class="cert-date">${cert.date || ''}</div>
+          <div class="cert-date">🗓 Issued: ${cert.date || '2024'}</div>
         </div>
       </div>
     `;
@@ -350,14 +367,29 @@ async function renderUploadedResume() {
       try { resume = JSON.parse(resumeData); } catch (e) {}
     }
   }
-  if (!resume) return;
 
   try {
     const links = document.querySelectorAll('.resume-download-link');
-    links.forEach(link => {
-      link.href = resume.file;
-      link.setAttribute('download', resume.name || 'resume.pdf');
-    });
+    if (resume && resume.file) {
+      links.forEach(link => {
+        link.href = resume.file;
+        link.setAttribute('download', resume.name || 'resume.pdf');
+        link.onclick = null;
+      });
+    } else {
+      links.forEach(link => {
+        link.href = 'javascript:void(0)';
+        link.removeAttribute('download');
+        link.onclick = (e) => {
+          e.preventDefault();
+          if (window.showToast) {
+            window.showToast('No resume uploaded yet. Please upload a resume from the Admin Dashboard.', 'error');
+          } else {
+            alert('No resume uploaded yet. Please upload a resume from the Admin Dashboard.');
+          }
+        };
+      });
+    }
   } catch (e) {
     console.error("Error rendering resume:", e);
   }
@@ -425,7 +457,11 @@ const DEFAULT_PROJECTS = [];
 
 async function getProjects() {
   const stored = (await Storage.get('portfolio-projects')) || [];
-  return stored.filter(p => p && p.id && !String(p.id).startsWith('default-proj-'));
+  return stored.filter(p => {
+    if (!p || !p.id) return false;
+    const text = JSON.stringify(p).toLowerCase();
+    return !text.includes('automated test') && !text.includes('cloud sync') && !text.includes('test project');
+  });
 }
 
 async function renderProjects() {
@@ -446,7 +482,7 @@ async function renderProjects() {
       .join('');
 
     const githubLink = p.github ? `<a href="${p.github}" class="project-link link-github" target="_blank">🐙 GitHub</a>` : '';
-    const demoLink = p.demo ? `<a href="${p.demo}" class="project-link link-demo" target="_blank">🚀 Live Demo</a>` : '';
+    const demoLink = (p.demo && p.demo !== '#') ? `<a href="${p.demo}" class="project-link link-demo" target="_blank">🚀 Live Demo</a>` : '';
 
     return `
       <div class="project-card" data-project-id="${p.id}">
@@ -507,37 +543,68 @@ function initFirestoreListeners() {
   } catch (e) {}
 }
 
-async function cleanLegacyDefaults() {
+// =============================================
+// CLOUD SYNC & CLEANUP UTILITIES
+// =============================================
+async function removeTestItems() {
   try {
-    ['portfolio-certs', 'portfolio-projects'].forEach(key => {
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        try {
-          const items = JSON.parse(raw) || [];
-          const filtered = items.filter(i => i && i.id && !String(i.id).startsWith('default-'));
-          localStorage.setItem(key, JSON.stringify(filtered));
-        } catch(e) {}
-      }
-    });
+    const keys = ['portfolio-projects', 'portfolio-certs', 'portfolio-messages'];
+    for (const key of keys) {
+      const stored = (await Storage.get(key)) || [];
+      const cleaned = stored.filter(item => {
+        if (!item || !item.id) return false;
+        const idStr = String(item.id);
+        if (idStr.startsWith('default-proj-') || idStr.startsWith('default-cert-')) return false;
+        const text = JSON.stringify(item).toLowerCase();
+        return !text.includes('automated test') && !text.includes('cloud sync') && !text.includes('test project');
+      });
 
-    if (db) {
-      const defaultDocIds = [
-        'default-proj-1', 'default-proj-2', 'default-proj-3', 'default-proj-4',
-        'default-cert-1', 'default-cert-2', 'default-cert-3', 'default-cert-4', 'default-cert-5', 'default-cert-6'
-      ];
-      for (const id of defaultDocIds) {
-        const col = id.startsWith('default-proj') ? 'portfolio-projects' : 'portfolio-certs';
-        db.collection(col).doc(id).delete().catch(() => {});
+      if (cleaned.length !== stored.length) {
+        localStorage.setItem(key, JSON.stringify(cleaned));
+        const removed = stored.filter(i => !cleaned.includes(i));
+        for (const r of removed) {
+          if (r && r.id) {
+            await Storage.remove(key, r.id).catch(() => {});
+          }
+        }
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("removeTestItems error:", e);
+  }
+}
+
+async function syncAllToCloud() {
+  if (!db) return false;
+  try {
+    const keys = ['portfolio-certs', 'portfolio-projects', 'portfolio-videos', 'portfolio-messages'];
+    for (const key of keys) {
+      const data = JSON.parse(localStorage.getItem(key)) || [];
+      for (const item of data) {
+        if (item && item.id) {
+          await db.collection(key).doc(String(item.id)).set(item);
+        }
+      }
+    }
+    const resumeData = localStorage.getItem('portfolio-resume');
+    if (resumeData) {
+      const resume = JSON.parse(resumeData);
+      if (resume && resume.id) {
+        await db.collection('portfolio-resume').doc('current-resume').set(resume);
+      }
+    }
+    return true;
+  } catch (err) {
+    console.warn("syncAllToCloud error:", err);
+    return false;
+  }
 }
 
 // =============================================
 // INIT ON PAGE LOAD
 // =============================================
 document.addEventListener('DOMContentLoaded', async () => {
-  await cleanLegacyDefaults();
+  await removeTestItems();
   renderUploadedCerts();
   renderUploadedVideos();
   renderUploadedResume();
@@ -552,5 +619,5 @@ window.PortfolioUpload = {
   renderUploadedCerts, renderUploadedVideos, renderUploadedResume,
   renderProjects, getProjects, DEFAULT_PROJECTS,
   getCerts, DEFAULT_CERTS,
-  Storage, openVideoModal, db, syncAllToCloud
+  Storage, openVideoModal, db, syncAllToCloud, removeTestItems
 };
