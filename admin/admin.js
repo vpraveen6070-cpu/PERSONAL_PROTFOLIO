@@ -234,38 +234,44 @@ window.deleteCert = deleteCert;
 // MESSAGES MANAGEMENT
 // =============================================
 async function renderAdminMessages() {
-  if (!window.PortfolioUpload) return;
-  const messages = await window.PortfolioUpload.Storage.get('portfolio-messages');
   const list = document.getElementById('admin-messages-list');
   if (!list) return;
 
-  if (messages.length === 0) {
-    list.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;">No messages yet.</p>';
-    return;
-  }
+  try {
+    const messages = window.PortfolioUpload ? await window.PortfolioUpload.Storage.get('portfolio-messages') : (JSON.parse(localStorage.getItem('portfolio-messages')) || []);
 
-  list.innerHTML = messages.map(msg => `
-    <div class="admin-item-card message-item" data-id="${msg.id}" style="display:block; padding:1.5rem;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
-        <div>
-          <div class="admin-item-name" style="font-size:1.1rem; color:var(--accent-1);">${msg.name}</div>
-          <div style="font-size:0.85rem; color:var(--text-secondary);">${msg.email}</div>
+    if (!messages || messages.length === 0) {
+      list.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;padding:0.5rem 0;">No messages received yet.</p>';
+      return;
+    }
+
+    list.innerHTML = messages.map(msg => `
+      <div class="admin-item-card message-item" data-id="${msg.id}" style="display:block; padding:1.5rem; margin-bottom:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+          <div>
+            <div class="admin-item-name" style="font-size:1.1rem; color:var(--accent-1);">${msg.name || 'Anonymous'}</div>
+            <div style="font-size:0.85rem; color:var(--text-secondary);">${msg.email || ''}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.75rem; color:var(--text-secondary);">${msg.date ? new Date(msg.date).toLocaleString() : ''}</div>
+            <button class="admin-item-delete" onclick="deleteMessage('${msg.id}')" style="margin-top:0.5rem;">✕ Delete</button>
+          </div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:0.75rem; color:var(--text-secondary);">${new Date(msg.date).toLocaleString()}</div>
-          <button class="admin-item-delete" onclick="deleteMessage('${msg.id}')" style="margin-top:0.5rem;">✕ Delete</button>
+        <div style="margin-bottom:0.8rem;">
+          <strong style="font-size:0.9rem; color:var(--text-primary);">Subject:</strong> 
+          <span style="font-size:0.9rem; color:var(--text-secondary);">${msg.subject || '(No Subject)'}</span>
+        </div>
+        <div class="message-content" style="background: rgba(255,255,255,0.03); padding:1rem; border-radius:8px; font-size:0.9rem; line-height:1.6; color:var(--text-primary); border: 1px solid rgba(255,255,255,0.05);">
+          ${(msg.message || '').replace(/\n/g, '<br>')}
         </div>
       </div>
-      <div style="margin-bottom:0.8rem;">
-        <strong style="font-size:0.9rem; color:var(--text-primary);">Subject:</strong> 
-        <span style="font-size:0.9rem; color:var(--text-secondary);">${msg.subject || '(No Subject)'}</span>
-      </div>
-      <div class="message-content" style="background: rgba(255,255,255,0.03); padding:1rem; border-radius:8px; font-size:0.9rem; line-height:1.6; color:var(--text-primary); border: 1px solid rgba(255,255,255,0.05);">
-        ${msg.message.replace(/\n/g, '<br>')}
-      </div>
-    </div>
-  `).join('');
+    `).join('');
+  } catch (err) {
+    console.error("Error rendering admin messages:", err);
+    list.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;padding:0.5rem 0;">No messages received yet.</p>';
+  }
 }
+window.renderAdminMessages = renderAdminMessages;
 
 async function deleteMessage(id) {
   if (confirm('Delete this message?')) {

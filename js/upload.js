@@ -486,6 +486,7 @@ function initFirestoreListeners() {
           if (key === 'portfolio-certs') renderUploadedCerts();
           if (key === 'portfolio-projects') renderProjects();
           if (key === 'portfolio-videos') renderUploadedVideos();
+          if (key === 'portfolio-messages' && window.renderAdminMessages) window.renderAdminMessages();
         }
       }, err => {
         console.warn(`Firestore onSnapshot warning for ${key}:`, err);
