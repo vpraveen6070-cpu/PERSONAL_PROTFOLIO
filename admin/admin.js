@@ -75,6 +75,11 @@ function switchTab(tabName) {
   document.getElementById('tab-' + tabName)?.classList.add('active');
   document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active');
   document.getElementById('admin-page-title').textContent = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+
+  if (tabName === 'messages') renderAdminMessages();
+  if (tabName === 'certificates') renderAdminCerts();
+  if (tabName === 'projects') renderAdminProjects();
+  if (tabName === 'resume') renderAdminResume();
 }
 
 document.querySelectorAll('.admin-nav-link[data-tab]').forEach(link => {
