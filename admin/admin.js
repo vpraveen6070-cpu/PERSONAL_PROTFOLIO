@@ -127,26 +127,37 @@ async function updateStats() {
 // =============================================
 async function renderAdminCerts() {
   if (!window.PortfolioUpload) return;
-  const certs = await window.PortfolioUpload.Storage.get('portfolio-certs');
+  const certs = window.PortfolioUpload.getCerts ? await window.PortfolioUpload.getCerts() : await window.PortfolioUpload.Storage.get('portfolio-certs');
   const list = document.getElementById('admin-certs-list');
   if (!list) return;
 
-  if (certs.length === 0) {
-    list.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;">No uploaded certificates yet.</p>';
+  if (!certs || certs.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;">No certificates added yet.</p>';
     return;
   }
 
-  list.innerHTML = certs.map(cert => `
-    <div class="admin-item-card" data-id="${cert.id}">
-      <div class="admin-item-thumb-placeholder">
-        ${cert.type === 'application/pdf' ? '📄' : `<img src="${cert.file}" style="width:100%;height:100%;object-fit:cover;" alt="${cert.name}">`}
+  list.innerHTML = certs.map(cert => {
+    let thumbContent = '🏅';
+    if (cert.icon) {
+      thumbContent = `<span style="font-size:1.5rem;">${cert.icon}</span>`;
+    } else if (cert.type === 'application/pdf') {
+      thumbContent = '📄';
+    } else if (cert.file) {
+      thumbContent = `<img src="${cert.file}" style="width:100%;height:100%;object-fit:cover;" alt="${cert.name}">`;
+    }
+
+    return `
+      <div class="admin-item-card" data-id="${cert.id}">
+        <div class="admin-item-thumb-placeholder">
+          ${thumbContent}
+        </div>
+        <div class="admin-item-info">
+          <div class="admin-item-name">${cert.name}</div>
+        </div>
+        <button class="admin-item-delete" onclick="window.deleteCert('${cert.id}')">✕ Delete</button>
       </div>
-      <div class="admin-item-info">
-        <div class="admin-item-name">${cert.name}</div>
-      </div>
-      <button class="admin-item-delete" onclick="deleteCert('${cert.id}')">✕ Delete</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 async function deleteCert(id) {
@@ -155,6 +166,9 @@ async function deleteCert(id) {
     await window.PortfolioUpload.Storage.remove('portfolio-certs', id);
     await renderAdminCerts();
     await updateStats();
+    if (window.PortfolioUpload.renderUploadedCerts) {
+      await window.PortfolioUpload.renderUploadedCerts();
+    }
     showAdminToast('Certificate deleted');
   }
 }

@@ -152,47 +152,129 @@ async function addVideoEmbed(title, embedUrl, description) {
 }
 
 // =============================================
+// DEFAULT CERTIFICATES & RETRIEVAL
+// =============================================
+const DEFAULT_CERTS = [
+  {
+    id: 'default-cert-1',
+    name: 'Machine Learning Specialization',
+    issuer: 'Coursera / Andrew Ng',
+    date: '2024',
+    icon: '⚙️',
+    bg: 'linear-gradient(135deg,#1a1a3e,#4c1d95)',
+    file: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+    type: 'image/jpeg'
+  },
+  {
+    id: 'default-cert-2',
+    name: 'Deep Learning with TensorFlow',
+    issuer: 'Google / Coursera',
+    date: '2024',
+    icon: '⚡',
+    bg: 'linear-gradient(135deg,#0f4c75,#1b262c)',
+    file: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800&q=80',
+    type: 'image/jpeg'
+  },
+  {
+    id: 'default-cert-3',
+    name: 'Python for Data Science',
+    issuer: 'IBM / edX',
+    date: '2023',
+    icon: '💻',
+    bg: 'linear-gradient(135deg,#1a3a1a,#2d6a2d)',
+    file: 'https://images.unsplash.com/photo-1526379095098-d400fd0bfce8?w=800&q=80',
+    type: 'image/jpeg'
+  },
+  {
+    id: 'default-cert-4',
+    name: 'Google Cloud Fundamentals',
+    issuer: 'Google Cloud',
+    date: '2024',
+    icon: '🌐',
+    bg: 'linear-gradient(135deg,#1e1a3e,#2d1b69)',
+    file: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
+    type: 'image/jpeg'
+  },
+  {
+    id: 'default-cert-5',
+    name: 'Data Science Professional',
+    issuer: 'IBM / Coursera',
+    date: '2023',
+    icon: '📊',
+    bg: 'linear-gradient(135deg,#3a1a1a,#6a2d2d)',
+    file: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
+    type: 'image/jpeg'
+  },
+  {
+    id: 'default-cert-6',
+    name: 'AI for Everyone',
+    issuer: 'Coursera / Andrew Ng',
+    date: '2023',
+    icon: '🛡️',
+    bg: 'linear-gradient(135deg,#1a3a3a,#0e7490)',
+    file: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&q=80',
+    type: 'image/jpeg'
+  }
+];
+
+async function getCerts() {
+  const stored = await Storage.get('portfolio-certs');
+  if (!stored || stored.length === 0) {
+    if (!localStorage.getItem('portfolio-certs-initialized')) {
+      localStorage.setItem('portfolio-certs', JSON.stringify(DEFAULT_CERTS));
+      localStorage.setItem('portfolio-certs-initialized', 'true');
+      return DEFAULT_CERTS;
+    }
+  }
+  return stored;
+}
+
+// =============================================
 // RENDER UPLOADED CERTS TO PORTFOLIO
 // =============================================
 async function renderUploadedCerts() {
-  const certs = await Storage.get('portfolio-certs');
+  const certs = await getCerts();
   const grid = document.getElementById('certs-grid');
   if (!grid) return;
 
-  // Remove elements that were deleted
-  const existingCards = grid.querySelectorAll('[data-cert-id]');
-  existingCards.forEach(card => {
-    const cardId = card.getAttribute('data-cert-id');
-    if (!certs.some(c => String(c.id) === String(cardId))) {
-      card.remove();
+  if (!certs || certs.length === 0) {
+    grid.innerHTML = '<p style="color:var(--text-secondary);grid-column:1/-1;text-align:center;padding:2rem;">No certificates available.</p>';
+    return;
+  }
+
+  grid.innerHTML = certs.map((cert, idx) => {
+    let previewContent = '';
+    if (cert.icon) {
+      previewContent = `<span style="font-size:4rem;">${cert.icon}</span>`;
+    } else if (cert.type === 'application/pdf') {
+      previewContent = `<span style="font-size:4rem;">📄</span>`;
+    } else {
+      previewContent = `<img src="${cert.file}" alt="${cert.name}" style="width:100%;height:100%;object-fit:cover;">`;
     }
-  });
 
-  if (certs.length === 0) return;
+    const bgStyle = cert.bg ? `style="background:${cert.bg};"` : '';
+    const issuerHtml = cert.issuer ? `<div class="cert-issuer">${cert.issuer}</div>` : '';
 
-  certs.forEach(cert => {
-    if (document.querySelector(`[data-cert-id="${cert.id}"]`)) return; // skip dups
-    const card = document.createElement('div');
-    card.className = 'cert-card';
-    card.setAttribute('data-category', cert.category || 'General');
-    card.setAttribute('data-cert-id', cert.id);
-    card.innerHTML = `
-      <div class="cert-preview">
-        ${cert.type === 'application/pdf'
-          ? `<span style="font-size:4rem">📄</span>`
-          : `<img src="${cert.file}" alt="${cert.name}" style="width:100%;height:100%;object-fit:cover;">`
-        }
-        <div class="cert-overlay">
-          <span class="cert-view-btn" data-lightbox="${cert.file}">👁 View</span>
+    return `
+      <div class="cert-card cert-reveal stagger-${(idx % 5) + 1}" data-cert-id="${cert.id}">
+        <div class="cert-preview" ${bgStyle}>
+          ${previewContent}
+          <div class="cert-overlay">
+            <span class="cert-view-btn" data-lightbox="${cert.file}">👁 View Certificate</span>
+          </div>
+        </div>
+        <div class="cert-info">
+          <div class="cert-title">${cert.name}</div>
+          ${issuerHtml}
+          <div class="cert-date">${cert.date || ''}</div>
         </div>
       </div>
-      <div class="cert-info">
-        <div class="cert-title">${cert.name}</div>
-        <div class="cert-date">${cert.date}</div>
-      </div>
     `;
-    grid.insertBefore(card, grid.firstChild);
-  });
+  }).join('');
+
+  if (window.initLightbox) {
+    window.initLightbox();
+  }
 }
 
 
@@ -413,5 +495,6 @@ window.PortfolioUpload = {
   handleCertUpload, handleResumeUpload, addVideoEmbed,
   renderUploadedCerts, renderUploadedVideos, renderUploadedResume,
   renderProjects, getProjects, DEFAULT_PROJECTS,
+  getCerts, DEFAULT_CERTS,
   Storage, openVideoModal,
 };
