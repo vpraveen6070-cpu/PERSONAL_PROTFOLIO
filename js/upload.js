@@ -65,16 +65,13 @@ const Storage = {
         const snapshot = await db.collection(key).get();
         const firestoreDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (firestoreDocs.length > 0) {
+          // Firestore has data — treat it as the source of truth
           localStorage.setItem(key, JSON.stringify(firestoreDocs));
           return firestoreDocs;
-        } else if (localData.length > 0) {
-          // If Firestore is empty, auto-push local items to Cloud Firestore
-          for (const item of localData) {
-            if (item && item.id) {
-              db.collection(key).doc(String(item.id)).set(item).catch(console.warn);
-            }
-          }
-          return localData;
+        } else {
+          // Firestore is empty — clear localStorage to match (don't re-push)
+          localStorage.setItem(key, JSON.stringify([]));
+          return [];
         }
       } catch (err) {
         console.warn("Firestore fetch error, falling back to localStorage:", err);
