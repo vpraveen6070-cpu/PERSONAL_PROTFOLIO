@@ -221,21 +221,22 @@ async function deleteCert(id) {
 
   const stringId = String(id);
 
-  // Remove from localStorage immediately
+  // 1. Remove from localStorage immediately
   try {
     const arr = (JSON.parse(localStorage.getItem('portfolio-certs')) || []).filter(c => String(c.id) !== stringId);
     localStorage.setItem('portfolio-certs', JSON.stringify(arr));
   } catch (e) {}
 
-  // Remove from Firestore if available
-  if (window.PortfolioUpload) {
-    await window.PortfolioUpload.Storage.remove('portfolio-certs', stringId).catch(console.warn);
-  } else {
-    try {
-      const db = window.firebase && firebase.apps.length ? firebase.firestore() : null;
-      if (db) await db.collection('portfolio-certs').doc(stringId).delete();
-    } catch (e) { console.warn('Firestore fallback error:', e); }
-  }
+  // 2. Always delete directly from Firestore
+  try {
+    const firestoreDb = (window.PortfolioUpload && window.PortfolioUpload.db)
+      ? window.PortfolioUpload.db
+      : (window.firebase && firebase.apps.length ? firebase.firestore() : null);
+    if (firestoreDb) {
+      await firestoreDb.collection('portfolio-certs').doc(stringId).delete();
+      console.log(`Deleted portfolio-certs/${stringId} from Firestore ✓`);
+    }
+  } catch (e) { console.warn('Firestore cert delete error:', e); }
 
   await renderAdminCerts();
   if (typeof updateStats === 'function') await updateStats();
@@ -295,21 +296,24 @@ async function deleteMessage(id) {
 
   const stringId = String(id);
 
-  // Remove from localStorage immediately
+  // 1. Remove from localStorage immediately
   try {
     const arr = (JSON.parse(localStorage.getItem('portfolio-messages')) || []).filter(m => String(m.id) !== stringId);
     localStorage.setItem('portfolio-messages', JSON.stringify(arr));
   } catch (e) {}
 
-  // Remove from Firestore if available
-  if (window.PortfolioUpload) {
-    await window.PortfolioUpload.Storage.remove('portfolio-messages', stringId).catch(console.warn);
-  } else {
-    // Fallback: try db directly
-    try {
-      const db = window.firebase && firebase.apps.length ? firebase.firestore() : null;
-      if (db) await db.collection('portfolio-messages').doc(stringId).delete();
-    } catch (e) { console.warn('Firestore fallback delete error:', e); }
+  // 2. Always delete from Firestore directly (most reliable path)
+  try {
+    const firestoreDb = (window.PortfolioUpload && window.PortfolioUpload.db)
+      ? window.PortfolioUpload.db
+      : (window.firebase && firebase.apps.length ? firebase.firestore() : null);
+
+    if (firestoreDb) {
+      await firestoreDb.collection('portfolio-messages').doc(stringId).delete();
+      console.log(`Deleted portfolio-messages/${stringId} from Firestore ✓`);
+    }
+  } catch (e) {
+    console.warn('Firestore delete error for message:', e);
   }
 
   await renderAdminMessages();
@@ -493,21 +497,22 @@ async function deleteProject(id) {
 
   const stringId = String(id);
 
-  // Remove from localStorage immediately
+  // 1. Remove from localStorage immediately
   try {
     const arr = (JSON.parse(localStorage.getItem('portfolio-projects')) || []).filter(p => String(p.id) !== stringId);
     localStorage.setItem('portfolio-projects', JSON.stringify(arr));
   } catch (e) {}
 
-  // Remove from Firestore if available
-  if (window.PortfolioUpload) {
-    await window.PortfolioUpload.Storage.remove('portfolio-projects', stringId).catch(console.warn);
-  } else {
-    try {
-      const db = window.firebase && firebase.apps.length ? firebase.firestore() : null;
-      if (db) await db.collection('portfolio-projects').doc(stringId).delete();
-    } catch (e) { console.warn('Firestore fallback error:', e); }
-  }
+  // 2. Always delete directly from Firestore
+  try {
+    const firestoreDb = (window.PortfolioUpload && window.PortfolioUpload.db)
+      ? window.PortfolioUpload.db
+      : (window.firebase && firebase.apps.length ? firebase.firestore() : null);
+    if (firestoreDb) {
+      await firestoreDb.collection('portfolio-projects').doc(stringId).delete();
+      console.log(`Deleted portfolio-projects/${stringId} from Firestore ✓`);
+    }
+  } catch (e) { console.warn('Firestore project delete error:', e); }
 
   await renderAdminProjects();
   if (typeof updateStats === 'function') await updateStats();
