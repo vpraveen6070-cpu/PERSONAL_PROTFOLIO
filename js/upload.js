@@ -332,20 +332,17 @@ async function getCerts() {
   };
 
   const cleanLocal = local.filter(cleanFilter);
-  if (cleanLocal.length > 0) {
-    Storage.get('portfolio-certs').then(stored => {
-      if (stored && Array.isArray(stored)) {
-        const cleaned = stored.filter(cleanFilter);
-        if (cleaned.length !== cleanLocal.length) {
-          renderUploadedCerts();
-        }
-      }
-    }).catch(() => {});
-    return cleanLocal;
-  }
 
-  const stored = (await Storage.get('portfolio-certs')) || [];
-  return stored.filter(cleanFilter);
+  Storage.get('portfolio-certs').then(stored => {
+    if (stored && Array.isArray(stored)) {
+      const cleaned = stored.filter(cleanFilter);
+      if (cleaned.length !== cleanLocal.length) {
+        renderUploadedCerts();
+      }
+    }
+  }).catch(() => {});
+
+  return cleanLocal;
 }
 
 let currentCertFilter = 'all';
@@ -628,20 +625,17 @@ async function getProjects() {
   };
 
   const cleanLocal = local.filter(cleanFilter);
-  if (cleanLocal.length > 0) {
-    Storage.get('portfolio-projects').then(stored => {
-      if (stored && Array.isArray(stored)) {
-        const cleaned = stored.filter(cleanFilter);
-        if (cleaned.length !== cleanLocal.length) {
-          renderProjects();
-        }
-      }
-    }).catch(() => {});
-    return cleanLocal;
-  }
 
-  const stored = (await Storage.get('portfolio-projects')) || [];
-  return stored.filter(cleanFilter);
+  Storage.get('portfolio-projects').then(stored => {
+    if (stored && Array.isArray(stored)) {
+      const cleaned = stored.filter(cleanFilter);
+      if (cleaned.length !== cleanLocal.length) {
+        renderProjects();
+      }
+    }
+  }).catch(() => {});
+
+  return cleanLocal;
 }
 
 async function renderProjects() {
