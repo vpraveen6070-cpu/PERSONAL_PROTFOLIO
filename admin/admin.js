@@ -217,16 +217,32 @@ async function previewCertModal(id) {
 window.previewCertModal = previewCertModal;
 
 async function deleteCert(id) {
-  if (confirm('Delete this certificate?')) {
-    if (!window.PortfolioUpload) return;
-    await window.PortfolioUpload.Storage.remove('portfolio-certs', id);
-    await renderAdminCerts();
-    await updateStats();
-    if (window.PortfolioUpload.renderUploadedCerts) {
-      await window.PortfolioUpload.renderUploadedCerts();
-    }
-    showAdminToast('Certificate deleted');
+  if (!confirm('Delete this certificate?')) return;
+
+  const stringId = String(id);
+
+  // Remove from localStorage immediately
+  try {
+    const arr = (JSON.parse(localStorage.getItem('portfolio-certs')) || []).filter(c => String(c.id) !== stringId);
+    localStorage.setItem('portfolio-certs', JSON.stringify(arr));
+  } catch (e) {}
+
+  // Remove from Firestore if available
+  if (window.PortfolioUpload) {
+    await window.PortfolioUpload.Storage.remove('portfolio-certs', stringId).catch(console.warn);
+  } else {
+    try {
+      const db = window.firebase && firebase.apps.length ? firebase.firestore() : null;
+      if (db) await db.collection('portfolio-certs').doc(stringId).delete();
+    } catch (e) { console.warn('Firestore fallback error:', e); }
   }
+
+  await renderAdminCerts();
+  if (typeof updateStats === 'function') await updateStats();
+  if (window.PortfolioUpload && window.PortfolioUpload.renderUploadedCerts) {
+    await window.PortfolioUpload.renderUploadedCerts();
+  }
+  showAdminToast('Certificate deleted ✓');
 }
 window.deleteCert = deleteCert;
 
@@ -472,16 +488,32 @@ document.getElementById('add-project-btn')?.addEventListener('click', async () =
 });
 
 async function deleteProject(id) {
-  if (confirm('Delete this project?')) {
-    if (!window.PortfolioUpload) return;
-    await window.PortfolioUpload.Storage.remove('portfolio-projects', id);
-    await renderAdminProjects();
-    await updateStats();
-    if (window.PortfolioUpload.renderProjects) {
-      await window.PortfolioUpload.renderProjects();
-    }
-    showAdminToast('Project deleted');
+  if (!confirm('Delete this project?')) return;
+
+  const stringId = String(id);
+
+  // Remove from localStorage immediately
+  try {
+    const arr = (JSON.parse(localStorage.getItem('portfolio-projects')) || []).filter(p => String(p.id) !== stringId);
+    localStorage.setItem('portfolio-projects', JSON.stringify(arr));
+  } catch (e) {}
+
+  // Remove from Firestore if available
+  if (window.PortfolioUpload) {
+    await window.PortfolioUpload.Storage.remove('portfolio-projects', stringId).catch(console.warn);
+  } else {
+    try {
+      const db = window.firebase && firebase.apps.length ? firebase.firestore() : null;
+      if (db) await db.collection('portfolio-projects').doc(stringId).delete();
+    } catch (e) { console.warn('Firestore fallback error:', e); }
   }
+
+  await renderAdminProjects();
+  if (typeof updateStats === 'function') await updateStats();
+  if (window.PortfolioUpload && window.PortfolioUpload.renderProjects) {
+    await window.PortfolioUpload.renderProjects();
+  }
+  showAdminToast('Project deleted ✓');
 }
 window.deleteProject = deleteProject;
 
